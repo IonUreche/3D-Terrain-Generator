@@ -43,16 +43,18 @@ float PI = 3.141592;
 // matrice utilizate
 glm::mat4 myMatrix, matrRot;
 
+float *points, *colors;
+
 // elemente pentru matricea de vizualizare
-float Obsx = 5.0, Obsy = 2.0, Obsz = -5.f;
-float Refx = 5.0f, Refy = 150.0f, Refz = -5.0f;
+float Obsx = -15, Obsy = 15, Obsz = -15;
+float Refx = 5.0f, Refy = 0.0f, Refz = 5.0f;
 float Vx = 0.0;
 glm::mat4 view;
 
 Terrain *ter;
 
 // elemente pentru matricea de proiectie
-float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1f, zfar = 1000.0f, fov = 45;
+float width = 1200, height = 900, xwmin = -1200.f, xwmax = 1200, ywmin = -1000, ywmax = 1000, znear = 0.001f, zfar = 10000.0f, fov = 120;
 glm::mat4 projection;
 
 void displayMatrix()
@@ -78,18 +80,18 @@ void processNormalKeys(unsigned char key, int x, int y)
 		Vx -= 0.1;
 		break;
 	case '+':
-		Obsz += 10.f;
+		Refz += 10.f;
 		break;
 	case '-':
-		Obsz -= 10.f;
+		Refz -= 10.f;
 		break;
 	case 'e':
 		Obsy += 2;
-		//Refy += 2;
+		Refy += 2;
 		break;
 	case 'q':
 		Obsy -= 2;
-		//Refy -= 2;
+		Refy -= 2;
 		break;
 	case 'o':
 		ter->update();
@@ -108,96 +110,21 @@ void processSpecialKeys(int key, int xx, int yy) {
 	switch (key) {
 	case GLUT_KEY_LEFT:
 		Obsx -= 2; 
-		//Refx -= 2;
+		Refx -= 2;
 		break;
 	case GLUT_KEY_RIGHT:
 		Obsx += 2;
-		//Refx += 2;
+		Refx += 2;
 		break;
 	case GLUT_KEY_UP:
 		Obsz += 2;
-		//Refz += 2;
+		Refz += 2;
 		break;
 	case GLUT_KEY_DOWN:
 		Obsz -= 2;
-		//Refz -= 2;
+		Refz -= 2;
 		break;
 	}
-}
-
-void CreateVBO(void)
-{
-	// varfurile 
-	GLfloat Vertices[] = {
-		// cele 4 varfuri din colturi 
-		-390.0f, -290.0f, 0.0f, 1.0f,
-		390.0f, -290.0f, 0.0f, 1.0f,
-		390.0f, 290.0f, 0.0f, 1.0f,
-		-390.0f, 290.0f, 0.0f, 1.0f,
-		// varfuri pentru axe
-		-400.0f, 0.0f, 0.0f, 1.0f,
-		400.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, -300.0f, 0.0f, 1.0f,
-		0.0f, 300.0f, 0.0f, 1.0f,
-		// varfuri pentru dreptunghi
-		-50.0f, -50.0f, 0.0f, 1.0f,
-		50.0f, -50.0f, 0.0f, 1.0f,
-		50.0f, 50.0f, 0.0f, 1.0f,
-		-50.0f, 50.0f, 0.0f, 1.0f,
-
-	};
-
-
-
-	// culorile varfurilor din colturi
-	GLfloat Colors[] = {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-	};
-
-
-	// se creeaza un buffer nou
-	glGenBuffers(1, &VboId);
-	// este setat ca buffer curent
-	glBindBuffer(GL_ARRAY_BUFFER, VboId);
-	// punctele sunt "copiate" in bufferul curent
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-
-	// se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO
-	glGenVertexArrays(1, &VaoId);
-	glBindVertexArray(VaoId);
-	// se activeaza lucrul cu atribute; atributul 0 = pozitie
-	glEnableVertexAttribArray(0);
-	// 
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-	// un nou buffer, pentru culoare
-	glGenBuffers(1, &ColorBufferId);
-	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Colors), Colors, GL_STATIC_DRAW);
-	// atributul 1 =  culoare
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-
-}
-void DestroyVBO(void)
-{
-
-
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDeleteBuffers(1, &ColorBufferId);
-	glDeleteBuffers(1, &VboId);
-
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &VaoId);
-
-
 }
 
 const GLchar *VertexShader, *FragmentShader;
@@ -253,9 +180,31 @@ void DestroyShaders(void)
 	glDeleteProgram(ProgramId);
 }
 
+void CreateVBO(void)
+{
+	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
+	glGenBuffers(1, &VboId);
+	glBindBuffer(GL_ARRAY_BUFFER, VboId);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points) * 18, points, GL_STATIC_DRAW);
+
+	// se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO
+	glGenVertexArrays(1, &VaoId);
+	glBindVertexArray(VaoId);
+	// se activeaza lucrul cu atribute; atributul 0 = pozitie
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+	// un nou buffer, pentru culoare
+	glGenBuffers(1, &ColorBufferId);
+	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors) * 18, colors, GL_STATIC_DRAW);
+	// atributul 1 =  culoare
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
 bool Initialize()
 {
-
 	myMatrix = glm::mat4(1.0f);
 
 	matrRot = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
@@ -271,16 +220,53 @@ bool Initialize()
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // culoarea de fond a ecranului
+	CreateShaders();
+
+	// enable read-only depth buffer
+	//glDepthMask(GL_FALSE);
+
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // culoarea de fond a ecranului
+
+	points = new float[3 * 6];
+	colors = new float[3 * 6];
+
+	for (int i = 0; i < 3 * 6; i += 6)
+	{
+		points[i] = points[i + 1] = points[i + 2] = points[i + 3] = points[i + 4] = points[i + 5] = 0.0f;
+		
+		if (i == 0) points[i + 3] = 1.0f;
+		if (i == 6) points[i + 4] = 1.0f;
+		if (i == 12) points[i + 5] = 1.0f;
+	}
+
+	for (int i = 0; i < 3 * 6; ++i)
+		colors[i] = 0.0f;
+
+	colors[0] = colors[3] = 1.0f;
+	colors[7] = colors[10] = 1.0f;
+	colors[14] = colors[17] = 1.0f;
+	/*
+	for (int i = 0; i < 18; i += 3)
+	{
+		cout << points[i] << ' ' << points[i + 1] << ' ' << points[i + 2] << ' ';
+	}
+
+	cout << "\ncolors\n";
+	for (int i = 0; i < 18; i += 3)
+	{
+		cout << colors[i] << ' ' << colors[i + 1] << ' ' << colors[i + 2] << ' ';
+	}
+	*/
 	return true;
 }
 
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+	CreateVBO();
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
+	//cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
 
 	// se schimba pozitia observatorului
 	glm::vec3 Obs = glm::vec3(Obsx, Obsy, Obsz);
@@ -290,7 +276,7 @@ void RenderFunction(void)
 	glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
 
 	// verticala din planul de vizualizare 
-	glm::vec3 Vert = glm::vec3(Vx, 1.0f, 0.0f);
+	glm::vec3 Vert = glm::vec3(0.5f, 0.65f, 0.5f);
 
 	view = glm::lookAt(Obs, PctRef, Vert);
 
@@ -302,8 +288,6 @@ void RenderFunction(void)
 	// projection = glm::frustum(xwmin, xwmax, ywmin, ywmax, znear, zfar);
 	projection = glm::perspective(fov, GLfloat(width) / GLfloat(height), znear, zfar);
 	myMatrix = glm::mat4(1.0f);
-	CreateVBO();
-	CreateShaders();
 
 	myMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
 	glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
@@ -313,28 +297,12 @@ void RenderFunction(void)
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
 
 	// desenare puncte din colturi si axe
-	glPointSize(10.0f);
-	glLineWidth(5.0f);
-	//glDrawArrays(GL_POINTS, 0, 4);
-	//glDrawArrays(GL_LINES, 4, 4);
+	glPointSize(5.0f);
+	glLineWidth(1.0f);
+	
+	glDrawArrays(GL_POINTS, 0, 6);
 
-	//myMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 100.0f));
-	//myMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
-	//glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
-
-	//mySphere->draw();
-	// 
 	ter->draw();
-
-	myMatrix = matrRot;
-	CreateShaders();
-
-	myMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
-	glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
-	viewLocation = glGetUniformLocation(ProgramId, "view");
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
-	projLocation = glGetUniformLocation(ProgramId, "projection");
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
 
 	glutSwapBuffers();
 }
@@ -347,12 +315,6 @@ void MousePassiveMotionFunction(int x, int y)
 	Obsx = Refx + sin(radians) * y;
 	Obsz = Refz + cos(radians) * y;
 	Obsy = Refy + y / 2.0f;
-}
-
-void Cleanup(void)
-{
-	DestroyShaders();
-	DestroyVBO();
 }
 
 int main(int argc, char* argv[])
@@ -372,7 +334,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(RenderFunction);
 	glutKeyboardFunc(processNormalKeys);
 	glutSpecialFunc(processSpecialKeys);
-	glutCloseFunc(Cleanup);
+	//glutCloseFunc(Cleanup);
 	glutMotionFunc(MousePassiveMotionFunction);
 	glutMainLoop();
 

@@ -23,16 +23,19 @@ private:
 	int m_colLen;
 	int m_nrIndicesToDraw;
 
+	float *p_points;
+	int *p_indices;
+
 	GLuint
 		VaoId,
 		VboId,
-		elementBufferId,
+		indicesBufferId,
 		ColorBufferId,
 		VertexShaderId,
 		FragmentShaderId,
 		ProgramId;
 
-	vector<GLint> m_indices;
+	vector<GLuint> m_indices;
 	vector<GLfloat> m_vertices;
 	vector<GLfloat> m_colors;
 	vector<GLfloat> m_normals;

@@ -14,10 +14,10 @@ Terrain::Terrain(int width = 10, int height = 10, int rowLen = 10, int colLen = 
 	m_nrIndicesToDraw = 3;
 
 	GenerateVertices();
-	DisplayVertices();
+	//DisplayVertices();
 	GenerateColors();
 	GenerateIndexes();
-	DisplayIndexes();
+	//DisplayIndexes();
 	CreateVBO();
 }
 
@@ -30,6 +30,8 @@ void Terrain::GenerateVertices()
 	float sliceW = m_width / (m_rowLen - 1);
 	float sliceH = m_height / (m_colLen - 1);
 
+	m_vertices.clear();
+
 	for (int i = 0; i < m_rowLen; ++i)
 		for (int j = 0; j < m_colLen; ++j)
 		{
@@ -37,6 +39,11 @@ void Terrain::GenerateVertices()
 			m_vertices.push_back(0.0f);
 			m_vertices.push_back(i * sliceH);
 		}
+
+		int k = 0;
+		p_points = new float[m_vertices.size()];
+		for (auto &x : m_vertices)
+			p_points[k++] = x;
 }
 
 void Terrain::DisplayVertices()
@@ -58,7 +65,7 @@ void Terrain::GenerateColors()
 	for (int i = 0; i < m_rowLen * m_colLen; ++i)
 	{
 		for(int t = 0; t < 3; ++ t) 
-			m_colors.push_back(1.0f);
+			m_colors.push_back(0.0f);
 	}
 }
 
@@ -71,7 +78,10 @@ void Terrain::GenerateIndexes()
 			m_indices.push_back(m_colLen * i + j);
 			m_indices.push_back((i + 1) * m_colLen + j);
 		}
-		m_indices.push_back(m_rowLen * m_colLen);
+		//m_indices.push_back(m_rowLen * m_colLen);
+		m_indices.push_back((i + 1) * m_colLen + m_colLen - 1);
+		if (i != m_rowLen - 2)
+			m_indices.push_back((i + 1) * m_colLen);
 	}
 }
 
@@ -94,7 +104,7 @@ void Terrain::CreateVBO()
 	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
 	glGenBuffers(1, &VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId);
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(GLfloat), &m_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(p_points) * m_vertices.size(), p_points, GL_STATIC_DRAW);
 
 	// se activeaza lucrul cu atribute; atributul 0 = pozitie
 	glEnableVertexAttribArray(0);
@@ -109,11 +119,11 @@ void Terrain::CreateVBO()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// un nou buffer, pentru indici
-	glGenBuffers(1, &elementBufferId);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferId);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLint), &m_indices[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(GL_PRIMITIVE_RESTART);
-	glPrimitiveRestartIndex(m_colLen * m_rowLen);
+	glGenBuffers(1, &indicesBufferId);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBufferId);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint), &m_indices[0], GL_STATIC_DRAW);
+	//glEnableVertexAttribArray(GL_PRIMITIVE_RESTART);
+	//glPrimitiveRestartIndex(m_colLen * m_rowLen);
 	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	//glEnableVertexAttribArray(2);
 	//glVertexAttribPointer(2, 1, GL_SHORT, GL_FALSE, 0, 0);
@@ -128,7 +138,7 @@ void Terrain::DestroyVBO()
 	glDeleteBuffers(1, &ColorBufferId);
 	glDeleteBuffers(1, &VboId);
 	glDeleteBuffers(1, &ColorBufferId);
-	glDeleteBuffers(1, &elementBufferId);
+	glDeleteBuffers(1, &indicesBufferId);
 
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &VaoId);
@@ -136,9 +146,12 @@ void Terrain::DestroyVBO()
 
 void Terrain::draw()
 {
-	glDrawArrays(GL_POINTS, 0, m_nrIndicesToDraw);
-	glBindVertexArray(VboId);
-	glDrawElements(GL_TRIANGLE_STRIP, m_nrIndicesToDraw, GL_UNSIGNED_INT, &m_indices[0]);
+	//glBindVertexArray(VboId);
+	//glDrawArrays(GL_POINTS, 0, m_nrIndicesToDraw);
+	//
+	CreateVBO();
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBufferId);
+	glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 void Terrain::update()
