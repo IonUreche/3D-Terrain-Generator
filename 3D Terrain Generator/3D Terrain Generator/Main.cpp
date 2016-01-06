@@ -180,27 +180,47 @@ void DestroyShaders(void)
 	glDeleteProgram(ProgramId);
 }
 
+void CreateBuffers()
+{
+	glGenBuffers(1, &VboId);
+	glGenBuffers(1, &ColorBufferId);
+}
+
 void CreateVBO(void)
 {
 	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
-	glGenBuffers(1, &VboId);
+	//glGenBuffers(1, &VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(points) * 18, points, GL_STATIC_DRAW);
 
 	// se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO
-	glGenVertexArrays(1, &VaoId);
-	glBindVertexArray(VaoId);
+	//glGenVertexArrays(1, &VaoId);
+	//glBindVertexArray(VaoId);
 	// se activeaza lucrul cu atribute; atributul 0 = pozitie
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// un nou buffer, pentru culoare
-	glGenBuffers(1, &ColorBufferId);
+	//glGenBuffers(1, &ColorBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(colors) * 18, colors, GL_STATIC_DRAW);
 	// atributul 1 =  culoare
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
+void DestroyVBO()
+{
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+	glDeleteBuffers(1, &ColorBufferId);
+	glDeleteBuffers(1, &VboId);
+	
+	//glBindVertexArray(0);
+	//glDeleteVertexArrays(1, &VaoId);
 }
 
 bool Initialize()
@@ -231,6 +251,7 @@ bool Initialize()
 	//ter->DisplayVertices();
 
 	CreateShaders();
+	CreateBuffers();
 
 	// enable read-only depth buffer
 	//glDepthMask(GL_FALSE);
@@ -273,6 +294,9 @@ bool Initialize()
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+	//DestroyVBO();
+	//ter->CleanUp();
+
 	CreateVBO();
 	glPolygonMode(GL_FRONT, GL_LINE);
 
@@ -315,8 +339,6 @@ void RenderFunction(void)
 	ter->Draw();
 
 	glutSwapBuffers();
-
-	ter->CleanUp();
 }
 
 void Cleanup()

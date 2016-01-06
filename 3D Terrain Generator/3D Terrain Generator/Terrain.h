@@ -56,5 +56,7 @@ private:
 	void GenerateColors();
 	void CreateVBO();
 	void DestroyVBO();
+
+	void CreateBuffers();
 };
 

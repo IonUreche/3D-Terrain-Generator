@@ -19,6 +19,7 @@ Terrain::Terrain(int width = 10, int height = 10, int rowLen = 10, int colLen = 
 	GenerateColors();
 	GenerateIndexes();
 	//DisplayIndexes();
+	CreateBuffers();
 	CreateVBO();
 }
 
@@ -104,8 +105,10 @@ void Terrain::DisplayIndexes()
 void Terrain::CreateVBO()
 {
 	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
+	//glGenVertexArrays(1, &VaoId);
+	//glBindVertexArray(VaoId);
 
-	glGenBuffers(1, &VboId);
+	//glGenBuffers(1, &VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
 
@@ -114,7 +117,7 @@ void Terrain::CreateVBO()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// un nou buffer, pentru culoare
-	glGenBuffers(1, &ColorBufferId);
+	//glGenBuffers(1, &ColorBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_colors.size(), &m_colors[0], GL_STATIC_DRAW);
 	// atributul 1 =  culoare
@@ -122,7 +125,7 @@ void Terrain::CreateVBO()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// un nou buffer, pentru indici
-	glGenBuffers(1, &indicesBufferId);
+	//glGenBuffers(1, &indicesBufferId);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBufferId);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint), &m_indices[0], GL_STATIC_DRAW);
 	//glEnableVertexAttribArray(GL_PRIMITIVE_RESTART);
@@ -130,6 +133,13 @@ void Terrain::CreateVBO()
 	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	//glEnableVertexAttribArray(2);
 	//glVertexAttribPointer(2, 1, GL_SHORT, GL_FALSE, 0, 0);
+}
+
+void Terrain::CreateBuffers()
+{
+	glGenBuffers(1, &VboId);
+	glGenBuffers(1, &ColorBufferId);
+	glGenBuffers(1, &indicesBufferId);
 }
 
 void Terrain::CleanUp()
