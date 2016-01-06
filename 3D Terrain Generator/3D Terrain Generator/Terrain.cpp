@@ -1,5 +1,6 @@
 #include "Terrain.h"
 #include <iostream>
+#include <cmath>
 
 Terrain::Terrain(int width = 10, int height = 10, int rowLen = 10, int colLen = 10)
 {
@@ -79,6 +80,7 @@ void Terrain::GenerateIndexes()
 			m_indices.push_back((i + 1) * m_colLen + j);
 		}
 		//m_indices.push_back(m_rowLen * m_colLen);
+		//m_indices.push_back(m_rowLen * m_colLen);
 		m_indices.push_back((i + 1) * m_colLen + m_colLen - 1);
 		if (i != m_rowLen - 2)
 			m_indices.push_back((i + 1) * m_colLen);
@@ -102,9 +104,10 @@ void Terrain::DisplayIndexes()
 void Terrain::CreateVBO()
 {
 	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
+
 	glGenBuffers(1, &VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(p_points) * m_vertices.size(), p_points, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
 
 	// se activeaza lucrul cu atribute; atributul 0 = pozitie
 	glEnableVertexAttribArray(0);
@@ -113,7 +116,7 @@ void Terrain::CreateVBO()
 	// un nou buffer, pentru culoare
 	glGenBuffers(1, &ColorBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
-	glBufferData(GL_ARRAY_BUFFER, m_colors.size() * sizeof(GLfloat), &m_colors[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_colors.size(), &m_colors[0], GL_STATIC_DRAW);
 	// atributul 1 =  culoare
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -129,35 +132,85 @@ void Terrain::CreateVBO()
 	//glVertexAttribPointer(2, 1, GL_SHORT, GL_FALSE, 0, 0);
 }
 
+void Terrain::CleanUp()
+{
+	DestroyVBO();
+}
+
 void Terrain::DestroyVBO()
 {
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &ColorBufferId);
 	glDeleteBuffers(1, &VboId);
-	glDeleteBuffers(1, &ColorBufferId);
 	glDeleteBuffers(1, &indicesBufferId);
 
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &VaoId);
+	//glBindVertexArray(0);
+	//glDeleteVertexArrays(1, &VaoId);
 }
 
-void Terrain::draw()
+void Terrain::Draw()
 {
 	//glBindVertexArray(VboId);
 	//glDrawArrays(GL_POINTS, 0, m_nrIndicesToDraw);
 	//
-	CreateVBO();
+	
+	//glBindBuffer(GL_ARRAY_BUFFER, VboId);
+	//glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesBufferId);
+	//glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+	CreateVBO();
 	glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
 
-void Terrain::update()
+void Terrain::Update()
 {
 	if (m_nrIndicesToDraw + 1 > m_indices.size())
 		m_nrIndicesToDraw = m_indices.size();
 	else
 		m_nrIndicesToDraw += 1;
+}
+
+void Terrain::SetBezierControlPoints(vector<glm::vec3>& controlPoints)
+{
+	m_bezierControlPoints = controlPoints;
+}
+
+float Terrain::BernsteinPolynomial3(int index, float u)
+{
+	if (index > 3 || index < 0) return -1.0f;
+	float ans = pow(1 - u, 3 - index) * pow(u, index);
+	if (index == 1 || index == 2) ans *= 3.0f;
+	return ans;
+}
+
+void Terrain::GenerateBezierSurface()
+{
+	for (int i = 0; i < m_rowLen; ++i)
+	{
+		for (int j = 0; j < m_colLen; ++j)
+		{
+			float u = (float)i / (float)(m_rowLen - 1);
+			float v = (float)j / (float)(m_colLen - 1);
+
+			int v_ind = 3 * (i * m_colLen + j);
+			m_vertices[v_ind] = m_vertices[v_ind + 1] = m_vertices[v_ind + 2] = 0.0f;
+
+			glm::vec3 new_point(0.f, 0.f, 0.f);
+
+			for (int ii = 0; ii < 4; ++ii)
+			{
+				for (int jj = 0; jj < 4; ++jj)
+				{
+					new_point += m_bezierControlPoints[ii * 4 + jj] * BernsteinPolynomial3(ii, u) * BernsteinPolynomial3(jj, v);
+				}
+			}
+			m_vertices[v_ind] = new_point.x;
+			m_vertices[v_ind + 1] = new_point.y;
+			m_vertices[v_ind + 2] = new_point.z;
+		}
+	}
 }

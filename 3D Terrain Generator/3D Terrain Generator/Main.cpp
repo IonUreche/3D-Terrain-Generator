@@ -94,7 +94,7 @@ void processNormalKeys(unsigned char key, int x, int y)
 		Refy -= 2;
 		break;
 	case 'o':
-		ter->update();
+		ter->Update();
 		break;
 	case 'v':
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -216,7 +216,17 @@ bool Initialize()
 	}
 
 	//mySphere = new Sphere(glm::vec3(1.0f, 1.0f, 1.0f), 1, 7, 14);
-	ter = new Terrain(10, 10, 10, 10);
+	ter = new Terrain(10, 10, 100, 100);
+	vector<glm::vec3> bez;
+	for (int i = 0; i < 4; ++i)
+	{
+		bez.push_back(glm::vec3(0.0f, 0.0f, i * 3.33f));
+		bez.push_back(glm::vec3(3.33f, 5.0f, i * 3.33f));
+		bez.push_back(glm::vec3(6.66f, -5.0f, i * 3.33f));
+		bez.push_back(glm::vec3(10.0f, 0.0f, i * 3.33f));
+	}
+	ter->SetBezierControlPoints(bez);
+	ter->GenerateBezierSurface();
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
 
@@ -264,7 +274,7 @@ void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	CreateVBO();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT, GL_LINE);
 
 	//cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
 
@@ -302,11 +312,17 @@ void RenderFunction(void)
 	
 	glDrawArrays(GL_POINTS, 0, 6);
 
-	ter->draw();
+	ter->Draw();
 
 	glutSwapBuffers();
+
+	ter->CleanUp();
 }
 
+void Cleanup()
+{
+	ter->CleanUp();
+}
 
 void MousePassiveMotionFunction(int x, int y)
 {
@@ -334,7 +350,7 @@ int main(int argc, char* argv[])
 	glutIdleFunc(RenderFunction);
 	glutKeyboardFunc(processNormalKeys);
 	glutSpecialFunc(processSpecialKeys);
-	//glutCloseFunc(Cleanup);
+	glutCloseFunc(Cleanup);
 	glutMotionFunc(MousePassiveMotionFunction);
 	glutMainLoop();
 

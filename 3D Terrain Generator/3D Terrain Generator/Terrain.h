@@ -3,6 +3,7 @@
 #include <vector>
 #include <GL/glew.h> 
 #include <GL/freeglut.h>
+#include "glm/vec3.hpp"  
 using namespace std;
 
 class Terrain
@@ -11,9 +12,13 @@ public:
 	Terrain(int width, int height, int rowLen, int colLen);
 	~Terrain();
 
-	void draw();
+	void Draw();
 
-	void update();
+	void Update();
+
+	void SetBezierControlPoints(vector<glm::vec3>& controlPoints);
+	void GenerateBezierSurface();
+	void CleanUp();
 
 private:
 
@@ -39,6 +44,10 @@ private:
 	vector<GLfloat> m_vertices;
 	vector<GLfloat> m_colors;
 	vector<GLfloat> m_normals;
+
+	vector<glm::vec3> m_bezierControlPoints;
+
+	float BernsteinPolynomial3(int index, float u);
 
 	void GenerateVertices();
 	void DisplayVertices();
