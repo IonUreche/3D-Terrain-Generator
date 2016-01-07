@@ -4,7 +4,7 @@
  #version 400
 
 in vec3 in_Position;
-//in vec3 in_Color;
+in vec3 in_Color;
 
 out vec4 gl_Position; 
 out vec4 ex_Color;
@@ -16,5 +16,6 @@ void main(void)
 {
 	gl_Position = projection * view * myMatrix * vec4(in_Position, 1.0f);
 	//ex_Color = vec4(in_Color, 1.0f);
+	ex_Color = vec4(in_Position.x / 10.0f, in_Position.y / 1.5f, in_Position.z / 10.0f, 1.0f);
 } 
  

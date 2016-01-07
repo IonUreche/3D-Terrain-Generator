@@ -15,6 +15,8 @@
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#define M_PI       3.14159265358979323846
+
 //#include "Sphere.h"
 #include "Terrain.h"
 
@@ -51,7 +53,17 @@ float Refx = 5.0f, Refy = 0.0f, Refz = 5.0f;
 float Vx = 0.0;
 glm::mat4 view;
 
+int isWireFrame = 1;
+
 Terrain *ter;
+
+// Mouse
+int lastMouseX = -1, lastMouseY = -1;
+float AngleXoZ = 303.5f, AngleYoZ = 0;
+float scrollSpeed = 0.5f, cameraSphereRadius = 14.0f;
+
+//Camera
+float CenterX = 5.0f, CenterY = 5.0f, CenterZ = 5.0f;
 
 // elemente pentru matricea de proiectie
 float width = 1200, height = 900, xwmin = -1200.f, xwmax = 1200, ywmin = -1000, ywmax = 1000, znear = 0.001f, zfar = 10000.0f, fov = 120;
@@ -80,10 +92,10 @@ void processNormalKeys(unsigned char key, int x, int y)
 		Vx -= 0.1;
 		break;
 	case '+':
-		Refz += 10.f;
+		cameraSphereRadius -= 1.0f;
 		break;
 	case '-':
-		Refz -= 10.f;
+		cameraSphereRadius += 1.0f;
 		break;
 	case 'e':
 		Obsy += 2;
@@ -97,9 +109,10 @@ void processNormalKeys(unsigned char key, int x, int y)
 		ter->Update();
 		break;
 	case 'v':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	case 'b':
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		isWireFrame ^= 1;
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//case 'b':
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	if (key == 27)
@@ -237,6 +250,7 @@ bool Initialize()
 
 	//mySphere = new Sphere(glm::vec3(1.0f, 1.0f, 1.0f), 1, 7, 14);
 	ter = new Terrain(10, 10, 100, 100);
+	
 	vector<glm::vec3> bez;
 	for (int i = 0; i < 4; ++i)
 	{
@@ -245,8 +259,12 @@ bool Initialize()
 		bez.push_back(glm::vec3(6.66f, -5.0f, i * 3.33f));
 		bez.push_back(glm::vec3(10.0f, 0.0f, i * 3.33f));
 	}
+
 	ter->SetBezierControlPoints(bez);
 	ter->GenerateBezierSurface();
+
+	//ter->GenerateDiamondSquareSurface(10, 7, 0.f, -1.0f, 1.0f, 0.5f);
+
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
 
@@ -298,11 +316,21 @@ void RenderFunction(void)
 	//ter->CleanUp();
 
 	CreateVBO();
-	glPolygonMode(GL_FRONT, GL_LINE);
-
+	if (isWireFrame) 
+		glPolygonMode(GL_FRONT, GL_LINE);
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
 
+	//cout << AngleXoZ << ' ' << cameraSphereRadius << ' ' << Obsz << '\n';
+
 	// se schimba pozitia observatorului
+	float aXoZ = M_PI * AngleXoZ / 180.0f;
+	float aYoZ = M_PI * AngleYoZ / 180.0f;
+
+	Obsx = CenterX;// +cameraSphereRadius * cos(aXoZ) * sin(aYoZ);
+	Obsy = CenterY+ cameraSphereRadius * sin(aXoZ) * sin(aYoZ);
+	Obsz = CenterZ + cameraSphereRadius * sin(aXoZ);
 	glm::vec3 Obs = glm::vec3(Obsx, Obsy, Obsz);
 
 	// pozitia punctului de referinta
@@ -310,7 +338,7 @@ void RenderFunction(void)
 	glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
 
 	// verticala din planul de vizualizare 
-	glm::vec3 Vert = glm::vec3(0.5f, 0.65f, 0.5f);
+	glm::vec3 Vert = glm::vec3(0.0f, 0.0f, 1.0f);
 
 	view = glm::lookAt(Obs, PctRef, Vert);
 
@@ -348,11 +376,29 @@ void Cleanup()
 
 void MousePassiveMotionFunction(int x, int y)
 {
+	/*
 	float radians = float(PI*(fov - 90.0f) / 180.0f);
 
 	Obsx = Refx + sin(radians) * y;
 	Obsz = Refz + cos(radians) * y;
 	Obsy = Refy + y / 2.0f;
+	*/
+	if (lastMouseX < 0)
+	{
+		lastMouseX = x;
+		lastMouseY = y;
+	}
+
+	AngleXoZ = (AngleXoZ + (y - lastMouseY) * scrollSpeed);
+	if (AngleXoZ < 0) AngleXoZ += 360.0f;
+	if (AngleXoZ >= 360.0f) AngleXoZ -= 360.0f;
+
+	AngleYoZ = (AngleYoZ + (x - lastMouseX) * scrollSpeed);
+	if (AngleYoZ < 0) AngleYoZ += 360.0f;
+	if (AngleYoZ >= 360.0f) AngleYoZ -= 360.0f;
+
+	lastMouseX = x;
+	lastMouseY = y;
 }
 
 int main(int argc, char* argv[])
@@ -361,7 +407,7 @@ int main(int argc, char* argv[])
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowPosition(500, 500);
 	glutInitWindowSize(800, 600);
-	glutCreateWindow("OpenGL 3D Scene");
+	glutCreateWindow("OpenGL 3D Terrain Generator");
 	glewInit();
 	if (!Initialize())
 	{

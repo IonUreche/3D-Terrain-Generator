@@ -19,17 +19,22 @@ public:
 	void SetBezierControlPoints(vector<glm::vec3>& controlPoints);
 	void GenerateBezierSurface();
 	void CleanUp();
+	void GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
+		                              float rngLowRange, float rngHighRange, float rngDivisionValue);
+
+	void SetSize(int width, int height);
+	void SetGridSize(int rowNum, int colNum);
+
+	float GetGridPointCoord(int row, int col, int coordIndex);
+	void SetGridPointCoord(int row, int col, int coordIndex, float value);
 
 private:
 
 	int m_width;
 	int m_height;
-	int m_rowLen;
-	int m_colLen;
+	int m_rowNum;
+	int m_colNum;
 	int m_nrIndicesToDraw;
-
-	float *p_points;
-	int *p_indices;
 
 	GLuint
 		VaoId,
@@ -58,5 +63,13 @@ private:
 	void DestroyVBO();
 
 	void CreateBuffers();
+
+	void CreateTerrain();
+	void ClearVertexData();
+
+	float GetDiamondAverage(int row, int col, int step);
+
+	float GetRandFloat(float rangeMin, float rangeMax);
+	bool IsValidGridCoord(int row, int col);
 };
 
