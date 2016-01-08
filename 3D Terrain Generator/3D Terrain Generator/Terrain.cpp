@@ -341,3 +341,33 @@ float Terrain::GetDiamondAverage(int row, int col, int step)
 	if (IsValidGridCoord(row, col + step)){ sum += GetGridPointCoord(row, col + step, 1); nr++; }
 	return sum / (float) nr;
 }
+
+void Terrain::SmoothTerrain(int squareWidth)
+{
+	vector<GLfloat> m_newYCoords;
+
+	int dx[9] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+	int dy[9] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+
+	for (int i = 0; i < m_rowNum; ++i)
+		for (int j = 0; j < m_colNum; ++j)
+		{
+			int nr = 0;
+			float aver = 0.0f;
+			for (int t = 0; t < 9; ++t)
+			{
+				if (IsValidGridCoord(i + dx[t], j + dy[t]))
+				{
+					++nr;
+					aver += GetGridPointCoord(i + dx[t], j + dy[t], 1);
+				}
+			}
+
+			m_newYCoords.push_back(aver / (float) nr);
+		}
+
+		for (int t = 0; t < m_newYCoords.size(); ++t)
+		{
+			m_vertices[3 * t + 1] = m_newYCoords[t];
+		}
+}

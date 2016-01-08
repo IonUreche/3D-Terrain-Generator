@@ -28,6 +28,8 @@ public:
 	float GetGridPointCoord(int row, int col, int coordIndex);
 	void SetGridPointCoord(int row, int col, int coordIndex, float value);
 
+	void SmoothTerrain(int squareWidth);
+
 private:
 
 	int m_width;

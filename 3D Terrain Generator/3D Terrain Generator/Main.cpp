@@ -110,6 +110,9 @@ void processNormalKeys(unsigned char key, int x, int y)
 		break;
 	case 'v':
 		isWireFrame ^= 1;
+		break;
+	case 'p':
+		ter->SmoothTerrain(2);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//case 'b':
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -260,10 +263,10 @@ bool Initialize()
 		bez.push_back(glm::vec3(10.0f, 0.0f, i * 3.33f));
 	}
 
-	ter->SetBezierControlPoints(bez);
-	ter->GenerateBezierSurface();
+	//ter->SetBezierControlPoints(bez);
+	//ter->GenerateBezierSurface();
 
-	//ter->GenerateDiamondSquareSurface(10, 7, 0.f, -1.0f, 1.0f, 0.5f);
+	ter->GenerateDiamondSquareSurface(10, 7, 0.f, -5.8f, 3.5f, 0.55f);
 
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
