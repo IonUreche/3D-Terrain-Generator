@@ -1,24 +1,21 @@
 #pragma once
+#include "Model.h"
 
-#include <vector>
-#include <GL/glew.h> 
-#include <GL/freeglut.h>
-#include "glm/vec3.hpp"  
 using namespace std;
 
-class Terrain
+class Terrain : public Model
 {
 public:
-	Terrain(int width, int height, int rowLen, int colLen);
+	Terrain(int width = 10, int height = 10, int rowLen = 10, int colLen = 10, glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f));
 	~Terrain();
 
-	void Draw();
+	void Draw() override;
 
-	void Update();
+	void Update() override;
 
 	void SetBezierControlPoints(vector<glm::vec3>& controlPoints);
 	void GenerateBezierSurface();
-	void CleanUp();
+	//void CleanUp();
 	void GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
 		                              float rngLowRange, float rngHighRange, float rngDivisionValue);
 
@@ -37,7 +34,7 @@ private:
 	int m_rowNum;
 	int m_colNum;
 	int m_nrIndicesToDraw;
-
+	/*
 	GLuint
 		VaoId,
 		VboId,
@@ -51,20 +48,22 @@ private:
 	vector<GLfloat> m_vertices;
 	vector<GLfloat> m_colors;
 	vector<GLfloat> m_normals;
-
+	*/
 	vector<glm::vec3> m_bezierControlPoints;
 
 	float BernsteinPolynomial3(int index, float u);
-
-	void GenerateVertices();
-	void DisplayVertices();
-	void GenerateIndexes();
-	void DisplayIndexes();
-	void GenerateColors();
+	/*
+	
 	void CreateVBO();
 	void DestroyVBO();
-
+	
 	void CreateBuffers();
+	*/
+	void GenerateVertices() override;
+	void DisplayVertices();
+	void GenerateIndexes() override;
+	void DisplayIndexes();
+	void GenerateColors() override;
 
 	void CreateTerrain();
 	void ClearVertexData();

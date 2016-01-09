@@ -17,7 +17,7 @@
 
 #define M_PI       3.14159265358979323846
 
-//#include "Sphere.h"
+#include "Sphere.h"
 #include "Terrain.h"
 
 using namespace std;
@@ -31,19 +31,19 @@ ColorBufferId,
 ProgramId,
 VertexShaderId,
 FragmentShaderId,
-myMatrixLocation,
+modelMatrixLocation,
 viewLocation,
 projLocation,
 matrRotlLocation,
 codColLocation;
 
-//Sphere *mySphere;
+Sphere *mySphere;
 
 int codCol;
 float PI = 3.141592;
 
 // matrice utilizate
-glm::mat4 myMatrix, matrRot;
+glm::mat4 model, matrRot;
 
 float *points, *colors;
 
@@ -74,7 +74,7 @@ void displayMatrix()
 	for (int ii = 0; ii < 4; ii++)
 	{
 		for (int jj = 0; jj < 4; jj++)
-			cout << myMatrix[ii][jj] << "  ";
+			cout << model[ii][jj] << "  ";
 		cout << endl;
 	};
 	cout << "\n";
@@ -241,7 +241,7 @@ void DestroyVBO()
 
 bool Initialize()
 {
-	myMatrix = glm::mat4(1.0f);
+	model = glm::mat4(1.0f);
 
 	matrRot = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
 
@@ -251,8 +251,12 @@ bool Initialize()
 		return false;
 	}
 
+	CreateShaders();
+	CreateBuffers();
+
 	//mySphere = new Sphere(glm::vec3(1.0f, 1.0f, 1.0f), 1, 7, 14);
 	ter = new Terrain(10, 10, 100, 100);
+	ter->SetVertexShader(ProgramId);
 	
 	vector<glm::vec3> bez;
 	for (int i = 0; i < 4; ++i)
@@ -271,8 +275,8 @@ bool Initialize()
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
 
-	CreateShaders();
-	CreateBuffers();
+	mySphere = new Sphere(glm::vec3(5.0f, 3.0f, 5.0f), 2.5f, 30, 30);
+	mySphere->SetVertexShader(ProgramId);
 
 	// enable read-only depth buffer
 	//glDepthMask(GL_FALSE);
@@ -317,10 +321,15 @@ void RenderFunction(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	//DestroyVBO();
 	//ter->CleanUp();
+	//ter->SmoothTerrain(2);
+	ter->Update();
 
 	CreateVBO();
-	if (isWireFrame) 
-		glPolygonMode(GL_FRONT, GL_LINE);
+	if (isWireFrame)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnable(GL_CULL_FACE);
+	}
 	else
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
@@ -346,16 +355,16 @@ void RenderFunction(void)
 	view = glm::lookAt(Obs, PctRef, Vert);
 
 	// cout << Obsx << '\n';
-	// myMatrix=view;
+	// model=view;
 	// displayMatrix();
 
 	//projection = glm::ortho(xwmin, xwmax, ywmin, ywmax, znear, zfar);
 	// projection = glm::frustum(xwmin, xwmax, ywmin, ywmax, znear, zfar);
 	projection = glm::perspective(fov, GLfloat(width) / GLfloat(height), znear, zfar);
-	myMatrix = glm::mat4(1.0f);
+	model = glm::mat4(1.0f);
 
-	myMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
-	glUniformMatrix4fv(myMatrixLocation, 1, GL_FALSE, &myMatrix[0][0]);
+	modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
 	viewLocation = glGetUniformLocation(ProgramId, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
 	projLocation = glGetUniformLocation(ProgramId, "projection");
@@ -368,6 +377,8 @@ void RenderFunction(void)
 	glDrawArrays(GL_POINTS, 0, 6);
 
 	ter->Draw();
+
+	mySphere->Draw();
 
 	glutSwapBuffers();
 }
