@@ -23,5 +23,9 @@ private:
 	void GenerateVertices() override;
 	void GenerateIndexes() override;
 	void GenerateColors() override;
+	void GenerateNormals() override;
+
+	bool IsValidSphereCoord(int ring, int sector);
+	glm::vec3 GetGridPointCoordVect(int ring, int sector);
 };
 

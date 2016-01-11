@@ -63,6 +63,7 @@ protected:
 		IndicesBufferId,
 		ColorsBufferId,
 		VertexShaderId,
+		NormalsBufferId,
 		FragmentShaderId,
 		ProgramId;
 
@@ -77,5 +78,6 @@ protected:
 	virtual void GenerateIndexes() = 0;
 	//void DisplayIndexes();
 	virtual void GenerateColors() = 0;
+	virtual void GenerateNormals() = 0;
 };
 

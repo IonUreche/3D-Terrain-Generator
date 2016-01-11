@@ -1,5 +1,6 @@
 #include "Sphere.h"
 #include <cmath> 
+#include "RNG.h"
 #define M_PI       3.14159265358979323846
 #define M_PI_2     1.57079632679489661923
 
@@ -13,26 +14,34 @@ Sphere::Sphere(glm::vec3 pos, float radius, unsigned int rings, unsigned int sec
 	CreateBuffers();
 	GenerateVertices();
 	GenerateIndexes();
-}
-
-void Sphere::Draw() 
-{
-	m_rotationAngles.x += 0.01f;
-	m_rotationAngles.y += 0.015f;
-	m_rotationAngles.z += 0.013f;
-	m_translationVector.x += 0.005f;
-	CreateVBO();
-	ApplyTransform();
-	glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_INT, 0);
+	GenerateNormals();
 }
 
 Sphere::~Sphere()
 {
 }
 
+void Sphere::Draw() 
+{
+	CreateVBO();
+	ApplyTransform();
+	glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_INT, 0);
+}
 
 void Sphere::Update() 
 {
+	m_rotationAngles.x += 0.01f;
+	m_rotationAngles.y += 0.015f;
+	m_rotationAngles.z += 0.013f;
+	//if (m_translationVector.x < 2.0f) m_translationVector += 0.005f;
+	//if (m_translationVector.x > 2.0f) m_translationVector -= 0.004f;
+	//if (m_translationVector.y < 1.5f) m_translationVector.y += 0.003;
+	//if (m_translationVector.y > 1.5f) m_translationVector.y -= 0.006;
+	//if (m_translationVector.z < 3.0f) m_translationVector.z += 0.003;
+	//if (m_translationVector.z > 3.0f) m_translationVector.z -= 0.006;
+	//m_translationVector.x = cos(m_rotationAngles.x) * cos(m_rotationAngles.z);
+	//m_translationVector.y = sin(m_rotationAngles.y) * cos(m_rotationAngles.z);
+	//m_translationVector.z = sin(m_rotationAngles.z) * cos(m_rotationAngles.z);
 
 }
 
@@ -100,5 +109,81 @@ void Sphere::GenerateIndexes()
 
 void Sphere::GenerateColors() 
 {
-	
+	for (int i = 0; i < m_rings * m_sectors; ++i)
+	{
+		for (int t = 0; t < 3; ++t)
+			m_colors.push_back(RNG::GetRandFloat());
+	}
+}
+
+void Sphere::GenerateNormals()
+{
+	m_normals.clear();
+	m_normals.resize(m_vertices.size());
+
+	for (int i = 0; i < m_rings; ++i)
+	{
+		for (int j = 0; j < m_sectors; ++j)
+		{
+			int vertIndex = i * m_sectors + j;
+			int nr = 0;
+			int sgn = 0;
+			int dx, dy;
+			int I1, J1, I2, J2;
+			int tt;
+
+			glm::vec3 currVect = GetGridPointCoordVect(i, j);
+			glm::vec3 ans = glm::vec3(0.0f);
+
+			for (int t = 0; t < 4; ++t)
+			{
+				// first
+				if (t > 1) sgn = -1;
+				else sgn = 1;
+
+				dx = sgn * (t & 1);
+				dy = sgn * (1 - (t & 1));
+
+				I1 = i + dx; J1 = j + dy;
+
+				// second
+				tt = (t + 1) % 4;
+
+				if (tt > 1) sgn = -1;
+				else sgn = 1;
+
+				dx = sgn * (tt & 1);
+				dy = sgn * (1 - (tt & 1));
+
+				I2 = i + dx; J2 = j + dy;
+
+				if (IsValidSphereCoord(I1, J1) && IsValidSphereCoord(I2, J2))
+				{
+					glm::vec3 v1 = GetGridPointCoordVect(I1, J1) - currVect;
+					glm::vec3 v2 = GetGridPointCoordVect(I2, J2) - currVect;
+					glm::vec3 cross_prod = glm::cross(v2, v1);
+					ans += glm::normalize(cross_prod);
+					++nr;
+				}
+			}
+
+			ans = 1.0f * (ans / (float)nr);
+			m_normals[3 * vertIndex] = ans.x;
+			m_normals[3 * vertIndex + 1] = ans.y;
+			m_normals[3 * vertIndex + 2] = ans.z;
+		}
+	}
+}
+
+bool Sphere::IsValidSphereCoord(int ring, int sector)
+{
+	int index = 3 * (ring * m_sectors + sector);
+	if (index < 0 || index >= m_vertices.size()) return false;
+	return true;
+}
+
+glm::vec3 Sphere::GetGridPointCoordVect(int ring, int sector)
+{
+	if (!IsValidSphereCoord(ring, sector)) return glm::vec3(-1.0f);
+	return glm::vec3(m_vertices[3 * (ring * m_sectors + sector)], m_vertices[3 * (ring * m_sectors + sector) + 1], m_vertices[3 * (ring * m_sectors + sector) + 2]);
 }

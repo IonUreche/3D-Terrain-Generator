@@ -22,6 +22,7 @@ public:
 	void SetSize(int width, int height);
 	void SetGridSize(int rowNum, int colNum);
 
+	glm::vec3 GetGridPointCoordVect(int row, int col);
 	float GetGridPointCoord(int row, int col, int coordIndex);
 	void SetGridPointCoord(int row, int col, int coordIndex, float value);
 
@@ -34,43 +35,22 @@ private:
 	int m_rowNum;
 	int m_colNum;
 	int m_nrIndicesToDraw;
-	/*
-	GLuint
-		VaoId,
-		VboId,
-		indicesBufferId,
-		ColorBufferId,
-		VertexShaderId,
-		FragmentShaderId,
-		ProgramId;
 
-	vector<GLuint> m_indices;
-	vector<GLfloat> m_vertices;
-	vector<GLfloat> m_colors;
-	vector<GLfloat> m_normals;
-	*/
 	vector<glm::vec3> m_bezierControlPoints;
 
 	float BernsteinPolynomial3(int index, float u);
-	/*
-	
-	void CreateVBO();
-	void DestroyVBO();
-	
-	void CreateBuffers();
-	*/
+
 	void GenerateVertices() override;
 	void DisplayVertices();
 	void GenerateIndexes() override;
 	void DisplayIndexes();
 	void GenerateColors() override;
+	void GenerateNormals() override;
 
 	void CreateTerrain();
 	void ClearVertexData();
 
 	float GetDiamondAverage(int row, int col, int step);
-
-	float GetRandFloat(float rangeMin, float rangeMax);
 	bool IsValidGridCoord(int row, int col);
 };
 

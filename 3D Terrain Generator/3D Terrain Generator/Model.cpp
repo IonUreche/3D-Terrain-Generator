@@ -25,6 +25,9 @@ void Model::ApplyTransform()
 
 	modelMatrixLocation = glGetUniformLocation(VertexShaderId, "model");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &m_transform[0][0]);
+
+	// 	= glGetUniformLocation(VertexShaderId, "model");
+	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &m_transform[0][0]);
 }
 
 void Model::CreateVBO()
@@ -43,6 +46,12 @@ void Model::CreateVBO()
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndicesBufferId);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint), &m_indices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, NormalsBufferId);
+	glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(GLfloat), &m_normals[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	//glEnableVertexAttribArray(GL_PRIMITIVE_RESTART);
 	//glPrimitiveRestartIndex(m_colNum * m_rowNum);
 }
@@ -52,6 +61,7 @@ void Model::CreateBuffers()
 	glGenBuffers(1, &VerticesBufferId);
 	glGenBuffers(1, &ColorsBufferId);
 	glGenBuffers(1, &IndicesBufferId);
+	glGenBuffers(1, &NormalsBufferId);
 }
 
 void Model::DestroyVBO()
@@ -64,6 +74,7 @@ void Model::DestroyVBO()
 	glDeleteBuffers(1, &ColorsBufferId);
 	glDeleteBuffers(1, &VerticesBufferId);
 	glDeleteBuffers(1, &IndicesBufferId);
+	glDeleteBuffers(1, &NormalsBufferId);
 }
 
 void Model::CleanUp()
