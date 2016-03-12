@@ -43,6 +43,8 @@ public:
 	float GetTranslationY() const;
 	float GetTranslationZ() const;
 
+	void SetTexturing(int value);
+
 protected:
 	glm::vec3 m_pos;
 	glm::vec3 m_centerPos;
@@ -57,9 +59,13 @@ protected:
 	std::vector<GLfloat> m_colors;
 	std::vector<GLuint>  m_indices;
 
+	int m_texturingEnabled;
+
 	GLuint
 		modelMatrixLocation,
+		texturingFlagLocation,
 		VerticesBufferId,
+		TextureCoordsBufferId,
 		IndicesBufferId,
 		ColorsBufferId,
 		VertexShaderId,

@@ -6,35 +6,52 @@
 uniform mat4 model;
 uniform vec3 lightPosition;
 uniform vec3 lightIntensities;
+uniform vec3 viewPos;
+uniform int texturing_enabled;
 
 in vec3 fragNormal;
 in vec3 fragVert;
-//in vec4 gl_Position; 
 in vec4 ex_Color;
 
 out vec4 out_Color;
 
+in vec2 texCoord;
+
+uniform sampler2D gSampler;
+
 void main(void)
 {
-
 	mat3 normalMatrix = transpose(inverse(mat3(model)));
     vec3 normal = normalize(normalMatrix * fragNormal);
 	vec3 fragPosition = vec3(model * vec4(fragVert, 1));
+	/*
+	// Ambient
+	float ambientStrength = 0.2f;
+	vec3 ambient = ambientStrength * lightIntensities;
 
+	// Diffuse
 	vec3 surfaceToLight = lightPosition - fragPosition;
+	float diff = max(dot(normal, surfaceToLight), 0.0f);
+	vec3 diffuse = diff * lightIntensities;
 
-	float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));
-    brightness = clamp(brightness, 0, 1);
+	// Specular
+	float specularStrength = 0.1f;
+	vec3 viewDir = normalize(viewPos - fragPosition);
+	vec3 reflectDir = reflect(-surfaceToLight, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	vec3 specular = specularStrength * spec * lightIntensities;
 
-    // calculate final color of the pixel, based on:
-    // 1. The angle of incidence: brightness
-    // 2. The color/intensities of the light: light.intensities
-    // 3. The texture and texture coord: texture(tex, fragTexCoord)
-    //  vec4 surfaceColor = texture(tex, fragTexCoord);
-    //out_Color = vec4(brightness * lightIntensities * vec3(ex_Color), ex_Color.a);
+	vec3 result = (ambient + diffuse + specular) * ex_Color;
+	out_Color = vec4(result, 1.0f);
+	*/
 	
-	out_Color = vec4(brightness * vec3(1.0f) * vec3(ex_Color), 1.0f);
-
-	//out_Color = ex_Color;//vec4(1.0f); //ex_Color;
+	if(texturing_enabled == 0)
+	{
+		out_Color = ex_Color;//vec4(1.0f); //ex_Color;
+	}
+	//else
+	//{
+	//	out_Color = texture2D(gSampler, texCoord);
+	//}
 }
  

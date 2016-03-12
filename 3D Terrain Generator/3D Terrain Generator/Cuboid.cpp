@@ -49,6 +49,9 @@ void Cuboid::GenerateVertices()
 				m_vertices.push_back(m_pos.x + l * halfLenght);
 				m_vertices.push_back(m_pos.y + h * halfHeight);
 				m_vertices.push_back(m_pos.z + w * halfWidth);
+
+				m_texcoords.push_back(0.0f);
+				m_texcoords.push_back(1.0f);
 			}
 	
 }

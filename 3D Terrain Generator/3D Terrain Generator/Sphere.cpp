@@ -71,8 +71,8 @@ void Sphere::GenerateVertices()
 		float y = cos(theta) * sin(phi);
 		float z = sin(theta);
 
-		*t++ = s*S;
-		*t++ = r*R;
+		//*t++ = s*S;
+		//*t++ = r*R;
 
 		*v++ = x * m_radius + m_pos.x;
 		*v++ = y * m_radius + m_pos.y;
@@ -89,6 +89,9 @@ void Sphere::GenerateVertices()
 		*c++ = Red; // 1.0f - (m_pos;
 		*c++ = ((float) s / (float) (m_sectors - 1)) * (1.0f - fabs(y - m_pos.y) / m_radius);
 		*c++ = 1.0f - Red;
+
+		m_texcoords.push_back(0.0f);
+		m_texcoords.push_back(1.0f);
 	}
 }
 

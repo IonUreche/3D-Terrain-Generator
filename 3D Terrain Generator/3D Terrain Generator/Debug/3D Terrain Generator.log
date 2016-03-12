@@ -1,16 +1,27 @@
-﻿Build started 1/7/2016 19:58:43.
+﻿Build started 3/11/2016 16:31:29.
      1>Project "E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\3D Terrain Generator\3D Terrain Generator.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Terrain.cpp
-         Terrain.cpp
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(174): warning C4018: '>' : signed/unsigned mismatch
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(309): warning C4018: '<' : signed/unsigned mismatch
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
+         Main.cpp
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(51): warning C4305: 'initializing' : truncation from 'double' to 'float'
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(201): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(112) : see declaration of 'strcpy'
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(447): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(448): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.lib" /MACHINE:X86 Debug\Main.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib FreeImage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.lib" /MACHINE:X86 Debug\Camera.obj
+         Debug\Cuboid.obj
+         Debug\Light.obj
+         Debug\Main.obj
+         Debug\Model.obj
+         Debug\Quaternion.obj
+         Debug\RNG.obj
+         Debug\Sphere.obj
          Debug\Terrain.obj
+         Debug\Texture.obj
          3D Terrain Generator.vcxproj -> E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe
      1>Done Building Project "E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\3D Terrain Generator\3D Terrain Generator.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.48
+Time Elapsed 00:00:02.40

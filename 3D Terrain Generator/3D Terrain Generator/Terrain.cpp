@@ -30,6 +30,9 @@ void Terrain::GenerateVertices()
 			m_vertices.push_back(j * sliceW);
 			m_vertices.push_back(0.0f);
 			m_vertices.push_back(i * sliceH);
+			
+			m_texcoords.push_back(0.0f);
+			m_texcoords.push_back(1.0f);
 		}
 }
 

@@ -17,10 +17,13 @@
 
 #define M_PI       3.14159265358979323846
 
+#include "Camera.h"
 #include "Cuboid.h"
 #include "Sphere.h"
 #include "Terrain.h"
 #include "Light.h"
+
+#include "Texture.h"
 
 using namespace std;
 
@@ -30,6 +33,7 @@ GLuint
 VaoId,
 VboId,
 ColorBufferId,
+TextureCoordsBufferId,
 ProgramId,
 VertexShaderId,
 FragmentShaderId,
@@ -39,6 +43,8 @@ projLocation,
 matrRotlLocation,
 codColLocation;
 
+Camera camera;
+
 Sphere *mySphere;
 
 int codCol;
@@ -47,11 +53,12 @@ float PI = 3.141592;
 // matrice utilizate
 glm::mat4 model, matrRot;
 
+glm::vec3 Obs = glm::vec3(-5.0f, 5.0f, -5.0f);
+glm::vec3 RefPct = glm::vec3(10.0f, 2.0f, 5.0f);
+
 float *points, *colors;
 
 // elemente pentru matricea de vizualizare
-float Obsx = -15, Obsy = 15, Obsz = -15;
-float Refx = 5.0f, Refy = 0.0f, Refz = 5.0f;
 float Vx = 0.0;
 glm::mat4 view;
 
@@ -77,7 +84,12 @@ glm::mat4 projection;
 
 // Light
 vector<GLfloat> lightPosVec, lightColorVec;
-GLuint lightPosLoc, lightColLoc;
+GLuint lightPosLoc, lightColLoc, viewPosLoc;
+
+// Camera Rotation angles
+glm::vec3 cameraRotation = glm::vec3(0.0f);
+
+CTexture tGold, tSnow;
 
 void displayMatrix()
 {
@@ -93,27 +105,33 @@ void displayMatrix()
 
 void processNormalKeys(unsigned char key, int x, int y)
 {
-
 	switch (key) {
-	case 'l':
-		Vx += 0.1f;
+	case 'w':
+		camera.Move(FORWARD);
+		break;
+	case 'a':
+		camera.Move(LEFT);
+		break;
+	case 's':
+		camera.Move(BACK);
+		break;
+	case 'd':
+		camera.Move(RIGHT);
+		break;
+	case 'q':
+		camera.Move(DOWN);
+		break;
+	case 'e':
+		camera.Move(UP);
 		break;
 	case 'r':
 		Vx -= 0.1f;
 		break;
 	case '+':
-		cameraSphereRadius -= 1.0f;
+		
 		break;
 	case '-':
 		cameraSphereRadius += 1.0f;
-		break;
-	case 'e':
-		Obsy += 2;
-		Refy += 2;
-		break;
-	case 'q':
-		Obsy -= 2;
-		Refy -= 2;
 		break;
 	case 'v':
 		isWireFrame ^= 1;
@@ -125,16 +143,22 @@ void processNormalKeys(unsigned char key, int x, int y)
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		break;
 	case 'u':
-		lightPosVec[0] += 5.0f;
+		lightPosVec[0] += 0.1f;
 		break;
 	case 'i':
-		lightPosVec[1] += 5.0f;
+		lightPosVec[1] += 0.1f;
 		break;
 	case 'o':
-		lightPosVec[2] += 5.0f;
+		lightPosVec[2] += 0.1f;
+		break;
+	case 'j':
+		lightPosVec[0] -= 0.1f;
 		break;
 	case 'k':
-		lightPosVec[1] -= 5.0f;
+		lightPosVec[1] -= 0.1f;
+		break;
+	case 'l':
+		lightPosVec[2] -= 0.1f;
 		break;
 	}
 
@@ -145,20 +169,16 @@ void processSpecialKeys(int key, int xx, int yy) {
 
 	switch (key) {
 	case GLUT_KEY_LEFT:
-		Obsx -= 2; 
-		Refx -= 2;
+		
 		break;
 	case GLUT_KEY_RIGHT:
-		Obsx += 2;
-		Refx += 2;
+		
 		break;
 	case GLUT_KEY_UP:
-		Obsz += 2;
-		Refz += 2;
+		
 		break;
 	case GLUT_KEY_DOWN:
-		Obsz -= 2;
-		Refz -= 2;
+		
 		break;
 	}
 }
@@ -227,7 +247,7 @@ void CreateVBO(void)
 	// se creeaza un buffer nou se seteaza ca buffer curent si punctele sunt "copiate" in bufferul curent
 	//glGenBuffers(1, &VboId);
 	glBindBuffer(GL_ARRAY_BUFFER, VboId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points) * 18, points, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 14, points, GL_STATIC_DRAW);
 
 	// se creeaza / se leaga un VAO (Vertex Array Object) - util cand se utilizeaza mai multe VBO
 	//glGenVertexArrays(1, &VaoId);
@@ -239,7 +259,7 @@ void CreateVBO(void)
 	// un nou buffer, pentru culoare
 	//glGenBuffers(1, &ColorBufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, ColorBufferId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colors) * 18, colors, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 14, colors, GL_STATIC_DRAW);
 	// atributul 1 =  culoare
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -277,12 +297,20 @@ bool Initialize()
 	CreateShaders();
 	CreateBuffers();
 
+	camera.SetProgramId(ProgramId);
+	camera.SetPosition(Obs);
+	camera.SetLookAt(RefPct);
+
+	camera.SetFOV(fov);
+	camera.aspect = GLfloat(width) / GLfloat(height);
+	camera.near_clip = znear;
+	camera.far_clip = zfar;
 
 	ter = new Terrain(10, 10, 100, 100);
 	ter->SetVertexShader(ProgramId);
 	ter->GenerateDiamondSquareSurface(10, 7, 0.f, -5.8f, 3.5f, 0.55f);
 	//ter->GetGridPointCoordVect(5, 5);
-	light = new Light(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	light = new Light(glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
 	// Set uniform fragment shader
 	lightPosVec.push_back(light->GetPos().x);
@@ -294,13 +322,14 @@ bool Initialize()
 	lightColorVec.push_back(light->GetColor().z);
 
 	lightPosLoc = glGetUniformLocation(ProgramId, "lightPosition");
-	glUniformMatrix3fv(lightPosLoc, 1, GL_FALSE, &lightPosVec[0]);
+	glUniform3fv(lightPosLoc, 3, &lightPosVec[0]);
 
 	lightColLoc = glGetUniformLocation(ProgramId, "lightIntensities");
-	glUniformMatrix3fv(lightColLoc, 1, GL_FALSE, &lightColorVec[0]);
-	
+	glUniform3fv(lightColLoc, 3, &lightColorVec[0]);
+
+	viewPosLoc = glGetUniformLocation(ProgramId, "viewPos");
+	glUniform3f(viewPosLoc, Obs.x, Obs.y, Obs.z);
 	//mySphere = new Sphere(glm::vec3(1.0f, 1.0f, 1.0f), 1, 7, 14);
-	
 
 	cuboid = new Cuboid(glm::vec3(3.0f, 1.0f, 2.0f), 1.0f, 1.0f, 1.0f);
 	cuboid->SetVertexShader(ProgramId);
@@ -317,8 +346,6 @@ bool Initialize()
 	//ter->SetBezierControlPoints(bez);
 	//ter->GenerateBezierSurface();
 
-	
-
 	//ter->GenerateVertices();
 	//ter->DisplayVertices();
 
@@ -330,24 +357,19 @@ bool Initialize()
 
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f); // culoarea de fond a ecranului
 
-	points = new float[3 * 6];
-	colors = new float[3 * 6];
+	points = new float[3 * 4];
+	colors = new float[3 * 4];
 
-	for (int i = 0; i < 3 * 6; i += 6)
-	{
-		points[i] = points[i + 1] = points[i + 2] = points[i + 3] = points[i + 4] = points[i + 5] = 0.0f;
-		
-		if (i == 0) points[i + 3] = 1.0f;
-		if (i == 6) points[i + 4] = 1.0f;
-		if (i == 12) points[i + 5] = 1.0f;
-	}
+	points[0] = 1.0f; points[1] = 0.0f; points[2] = 0.0f;
+	points[3] = 0.0f; points[4] = 1.0f; points[5] = 0.0f;
+	points[6] = 0.0f; points[7] = 0.0f; points[8] = 1.0f;
+	points[9] = 1.0f; points[10] = 1.0f; points[11] = 1.0f;
 
-	for (int i = 0; i < 3 * 6; ++i)
-		colors[i] = 0.0f;
+	colors[0] = 1.0f; colors[1] = 0.0f; colors[2] = 0.0f;
+	colors[3] = 0.0f; colors[4] = 1.0f; colors[5] = 0.0f;
+	colors[6] = 0.0f; colors[7] = 0.0f; colors[8] = 1.0f;
+	colors[9] = 1.0f; colors[10] = 1.0f; colors[11] = 1.0f;
 
-	colors[0] = colors[3] = 1.0f;
-	colors[7] = colors[10] = 1.0f;
-	colors[14] = colors[17] = 1.0f;
 	/*
 	for (int i = 0; i < 18; i += 3)
 	{
@@ -360,15 +382,23 @@ bool Initialize()
 		cout << colors[i] << ' ' << colors[i + 1] << ' ' << colors[i + 2] << ' ';
 	}
 	*/
+
+	tGold.loadTexture2D("data\\textures\\golddiag.jpg", true);
+	tGold.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
+
+	tSnow.loadTexture2D("data\\textures\\snow.jpg", true);
+	tSnow.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
+	glEnable(GL_TEXTURE_2D);
+
 	return true;
 }
 
 glm::mat4 CameraOrientation()
 {
-	glm::mat4 orientation;
+	glm::mat4 orientation(1.0f);
 	//orientation = glm::translate(glm::mat4(1.0f), glm::vec3(-Obsx, -Obsy, -Obsz));
 	//orientation = glm::rotate(orientation, _CameraVerticalAngle, glm::vec3(1, 0, 0));
-	orientation = glm::rotate(orientation, _CameraHorizontalAngle, glm::vec3(0, 1, 0));
+	//orientation = glm::rotate(orientation, cameraRotation.x, glm::vec3(0, 1, 0));
 	//orientation = glm::translate(orientation, glm::vec3(Obsx, Obsy, Obsz));
 	return orientation;
 }
@@ -376,13 +406,26 @@ glm::mat4 CameraOrientation()
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 	//DestroyVBO();
 	//ter->CleanUp();
 	//ter->SmoothTerrain(3);
 	//ter->Update();
 
+	tGold.bindTexture(0);
+
 	//lightPosVec[1] += 0.001f;
 	//lightPosVec[2] += 0.001f;
+	//cout << lightPosVec[0] << ' ' << lightPosVec[1] << ' ' << lightPosVec[2] << '\n';
+	points[8] = lightPosVec[0];
+	points[9] = lightPosVec[1];
+	points[10] = lightPosVec[2];
+
+	//cuboid->SetTranslation(glm::vec3(lightPosVec[0], lightPosVec[1], lightPosVec[2]));
+
+	//cout << cameraRotation.x << '\n';
+
+	cuboid->Update();
 
 	CreateVBO();
 	if (isWireFrame)
@@ -404,11 +447,6 @@ void RenderFunction(void)
 	float aXoZ = M_PI * AngleXoZ / 180.0f;
 	float aYoZ = M_PI * AngleYoZ / 180.0f;
 
-	Obsx = CenterX;// +cameraSphereRadius * cos(aXoZ) * sin(aYoZ);
-	Obsy = CenterY;// +cameraSphereRadius * sin(aXoZ) * sin(aYoZ);
-	Obsz = CenterZ;// +cameraSphereRadius * sin(aXoZ);
-	glm::vec3 Obs = glm::vec3(Obsx, Obsy, Obsz);
-
 	/*
 	glm::mat4 Camera::matrix() const {
     glm::mat4 camera = glm::perspective(_fieldOfView, _viewportAspectRatio, _nearPlane, _farPlane);
@@ -427,13 +465,27 @@ void RenderFunction(void)
 
 	// pozitia punctului de referinta
 	// Refx=Obsx; Refy=Obsy;
-	glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
+	//glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
 
+	// ------ new ----------
+	//Quaternion V = Quaternion(RefPct.x, RefPct.y, RefPct.z);
+	// AxisToRotateAround
+	//glm::vec3 A = glm::vec3(1.0f, 0.0f, 0.0f);
+	//float theta = 30.0f;
+	/*
+	Quaternion R = Quaternion(A.x * sin(cameraRotation.x * PI/ 360),
+		A.y * sin(cameraRotation.x * PI / 360),
+		A.z * sin(cameraRotation.x * PI / 360),
+		cos(cameraRotation.x * PI / 360));
+	Quaternion W = R.mult(V).mult(R.conjugate());
+	glm::vec3 new_view = glm::vec3(W.x, W.y, W.z);
+	*/
 	// verticala din planul de vizualizare 
 	//glm::vec3 Vert = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 Vert = glm::vec3(glm::inverse(CameraOrientation()) * glm::vec4(0, 1, 0, 1));
 
-	view = glm::lookAt(glm::vec3(1.0f), PctRef, Vert);
+	  //glm::vec3 Vert = glm::vec3(glm::inverse(CameraOrientation()) * glm::vec4(0, 1, 0, 1));
+	  //glm::vec3 RefPct2 = RotateCamera(cameraRotation.x, 0.0, 1.0, 0.0);
+	  //view = glm::lookAt(Obs, RefPct2, Vert);
 
 	// cout << Obsx << '\n';
 	// model=view;
@@ -441,46 +493,40 @@ void RenderFunction(void)
 
 	//projection = glm::ortho(xwmin, xwmax, ywmin, ywmax, znear, zfar);
 	// projection = glm::frustum(xwmin, xwmax, ywmin, ywmax, znear, zfar);
+	/*
 	projection = glm::perspective(fov, GLfloat(width) / GLfloat(height), znear, zfar);
 	projection *= CameraOrientation();
 	projection = glm::translate(projection, -Obs);
 	model = glm::mat4(1.0f);
-
+	*/
+	/*
 	modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
 	viewLocation = glGetUniformLocation(ProgramId, "view");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
 	projLocation = glGetUniformLocation(ProgramId, "projection");
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
-
-	//cout << lightPosVec[0] << ' ' << lightPosVec[1] << ' ' << lightPosVec[2] << '\n';
-
+	*/
 	lightPosLoc = glGetUniformLocation(ProgramId, "lightPosition");
-	if (lightPosLoc == GL_INVALID_OPERATION)
-	{
-		cout << "INVALID OPERATION !!!\n";
-	}
-	else
-	{
-		glUniformMatrix3fv(lightPosLoc, 1, GL_FALSE, &lightPosVec[0]);
-	}
+	glUniform3fv(lightPosLoc, 1, &lightPosVec[0]);
+
+	colors[9] = lightColorVec[0]; 
+	colors[10] = lightColorVec[1]; 
+	colors[11] = lightColorVec[2];
 
 	lightColLoc = glGetUniformLocation(ProgramId, "lightIntensities");
-	if (lightColLoc == GL_INVALID_OPERATION)
-	{
-		cout << "INVALID OPERATION !!!\n";
-	}
-	else
-	{
-		glUniformMatrix3fv(lightColLoc, 1, GL_FALSE, &lightColorVec[0]);
-	}
+	glUniform3fv(lightColLoc, 1, &lightColorVec[0]);
+
+	viewPosLoc = glGetUniformLocation(ProgramId, "viewPos");
+	glUniform3f(viewPosLoc, Obs.x, Obs.y, Obs.z);
+
 	
 
 	// desenare puncte din colturi si axe
 	glPointSize(5.0f);
 	glLineWidth(1.0f);
 	
-	glDrawArrays(GL_POINTS, 0, 6);
+	glDrawArrays(GL_POINTS, 0, 15);
 
 	ter->Draw();
 
@@ -491,9 +537,34 @@ void RenderFunction(void)
 
 	cuboid->Draw();
 
+	camera.Update();
+
 	glutSwapBuffers();
 }
+/*
+glm::vec3 RotateCamera(double Angle, double x, double y, double z)
+{
+	Quaternion temp, quat_view, result;
+	float fa = PI * Angle / 180.0f;
 
+	temp.x = x * sin(fa / 2.0);
+	temp.y = y * sin(fa / 2.0);
+	temp.z = z * sin(fa / 2.0);
+	temp.w = cos(fa / 2.0);
+
+	quat_view.x = RefPct.x;
+	quat_view.y = RefPct.y;
+	quat_view.z = RefPct.z;
+	quat_view.w = 0;
+
+	result = temp.mult(quat_view).mult(temp.conjugate());
+
+	return glm::vec3(result.x, result.y, result.z);
+	//RefPct.x = result.x;
+	//RefPct.y = result.y;
+	//RefPct.z = result.z;
+}
+*/
 void Cleanup()
 {
 	ter->CleanUp();
@@ -534,7 +605,7 @@ void MousePassiveMotionFunction(int x, int y)
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
 	glutInitWindowPosition(500, 500);
 	glutInitWindowSize(800, 600);
 	glutCreateWindow("OpenGL 3D Terrain Generator");
