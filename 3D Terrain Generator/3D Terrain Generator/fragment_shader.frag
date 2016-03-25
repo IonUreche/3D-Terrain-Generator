@@ -1,7 +1,7 @@
 
 // Fragment shader  
  
- #version 400
+ #version 330
 
 uniform mat4 model;
 uniform vec3 lightPosition;
@@ -12,12 +12,16 @@ uniform int texturing_enabled;
 in vec3 fragNormal;
 in vec3 fragVert;
 in vec4 ex_Color;
+in vec2 texCoords;
 
 out vec4 out_Color;
 
-in vec2 texCoord;
+uniform float minHeight;
+uniform float maxHeight;
 
-uniform sampler2D gSampler;
+uniform sampler2D tGrass;
+uniform sampler2D tRock;
+uniform sampler2D tSnow;
 
 void main(void)
 {
@@ -47,11 +51,21 @@ void main(void)
 	
 	if(texturing_enabled == 0)
 	{
-		out_Color = ex_Color;//vec4(1.0f); //ex_Color;
+		float alpha = (fragVert.y - minHeight) / (maxHeight - minHeight);
+		float red = alpha;
+		float green = 2 * alpha; // 2 * (1 - alpha)
+		if(alpha > 0.5f) green = 2 - green;
+		float blue = (1 - alpha);
+		out_Color = vec4(red, green, blue, 1.0);
 	}
-	//else
-	//{
-	//	out_Color = texture2D(gSampler, texCoord);
-	//}
+	else
+	{
+		vec3 up = vec3(0.0, 1.0, 0.0);
+		float cos_angle = dot(fragNormal, up) / (length(fragNormal) * length(fragNormal));
+		vec4 temp = vec4(1.0);
+		if(fragVert.y < 230) temp = mix(texture2D(tGrass, texCoords), texture2D(tRock, texCoords), abs(1 - cos_angle));
+			else temp = mix(texture2D(tSnow, texCoords), texture2D(tRock, texCoords), abs(1 - cos_angle));
+		out_Color = temp;
+	}
 }
  

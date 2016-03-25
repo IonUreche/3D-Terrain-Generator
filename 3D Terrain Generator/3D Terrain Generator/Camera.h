@@ -1,16 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <GL/glew.h> 
-#include <GL/freeglut.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 enum CameraType {
 	ORTHO, FREE
 };

@@ -1,20 +1,18 @@
-#include "RNG.h"
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
+#include "stdafx.h"
 
-float RNG::GetRandFloat(float rangeMin, float rangeMax)
+#include "RNG.h"
+
+float RNG::getFloat(float a, float b)
 {
-	if (!SetSeed())
-	{
-		srand((unsigned int)time(NULL));
-		m_setSeed = true;
-	}
-	if (rangeMin > rangeMax) return -1.0f;
-	float rZeroOne = ((float)rand() / (float) RAND_MAX);
-	return rZeroOne * (rangeMax - rangeMin) + rangeMin;
+	std::uniform_real_distribution<float> dist(a, b);
+	return dist(m_generator);
 }
 
+int RNG::getInt(int a, int b)
+{
+	std::uniform_int_distribution<int> dist(a, b);
+	return dist(m_generator);
+}
 
 bool RNG::SetSeed()
 {
@@ -22,4 +20,4 @@ bool RNG::SetSeed()
 }
 
 bool RNG::m_setSeed = false;
-
+std::default_random_engine RNG::m_generator;

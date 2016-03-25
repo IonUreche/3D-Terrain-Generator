@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Light.h"
 
 Light::Light(glm::vec3 pos, glm::vec3 color)

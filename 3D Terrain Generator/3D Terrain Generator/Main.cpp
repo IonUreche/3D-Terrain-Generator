@@ -1,19 +1,6 @@
 
-#include <windows.h>  // biblioteci care urmeaza sa fie incluse
-#include <stdlib.h> // necesare pentru citirea shader-elor
-#include <GL/glew.h> 
-#include <GL/freeglut.h>
-
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-
-#include "glm/glm.hpp"  
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "stdafx.h"
+#include "Helpers.h"
 
 #define M_PI       3.14159265358979323846
 
@@ -30,18 +17,11 @@ using namespace std;
 //////////////////////////////////////
 // identificatori 
 GLuint
-VaoId,
-VboId,
-ColorBufferId,
-TextureCoordsBufferId,
-ProgramId,
-VertexShaderId,
-FragmentShaderId,
-modelMatrixLocation,
-viewLocation,
-projLocation,
-matrRotlLocation,
-codColLocation;
+VaoId, VboId, ColorBufferId, TextureCoordsBufferId,
+ProgramId, VertexShaderId, FragmentShaderId,
+modelMatrixLocation, viewLocation, projLocation,
+matrRotlLocation,codColLocation,
+grassSamplerLoc, rockSamplerLoc, snowSamplerLoc;
 
 Camera camera;
 
@@ -61,8 +41,6 @@ float *points, *colors;
 // elemente pentru matricea de vizualizare
 float Vx = 0.0;
 glm::mat4 view;
-
-float _CameraVerticalAngle = 0.0f, _CameraHorizontalAngle = 0.0f;
 
 int isWireFrame = 1;
 
@@ -89,7 +67,7 @@ GLuint lightPosLoc, lightColLoc, viewPosLoc;
 // Camera Rotation angles
 glm::vec3 cameraRotation = glm::vec3(0.0f);
 
-CTexture tGold, tSnow;
+CTexture tGrass, tRock, tSnow;
 
 void displayMatrix()
 {
@@ -137,7 +115,8 @@ void processNormalKeys(unsigned char key, int x, int y)
 		isWireFrame ^= 1;
 		break;
 	case 'p':
-		ter->SmoothTerrain(3);
+		//ter->SmoothTerrain(3);
+		ter->SetTexturing(ter->GetTexturing() ^ 1);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	//case 'b':
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -160,11 +139,40 @@ void processNormalKeys(unsigned char key, int x, int y)
 	case 'l':
 		lightPosVec[2] -= 0.1f;
 		break;
+	case '1': 
+		if (cameraRotation.x < 30.0)
+		{
+			cameraRotation.x += 0.01;
+			camera.ChangePitch(0.01);
+		}
+		break;
+	case '2':
+		if (cameraRotation.x > -30.0)
+		{
+			cameraRotation.x -= 0.01;
+			camera.ChangePitch(-0.01);
+		}
+		break;
+	case '3':
+		cameraRotation.y += 0.01;
+		camera.ChangeHeading(cameraRotation.y);
+		break;
+	case '4':
+		cameraRotation.y -= 0.01;
+		camera.ChangeHeading(cameraRotation.y);
+		break;
+	case '5':
+		ter->SmoothTerrain(3);
+		break;
+	case '6':
+		ter->Apply3x3Filter();
+		break;
 	}
 
 	if (key == 27)
 		exit(0);
 }
+
 void processSpecialKeys(int key, int xx, int yy) {
 
 	switch (key) {
@@ -181,59 +189,6 @@ void processSpecialKeys(int key, int xx, int yy) {
 		
 		break;
 	}
-}
-
-const GLchar *VertexShader, *FragmentShader;
-
-const GLchar* LoadShaderFromFile(char * filename){
-
-	ifstream f(filename);
-	string s;
-
-	getline(f, s, char(EOF));
-
-	f.close();
-
-	const char *cShader = s.c_str();
-	int l = strlen(cShader);
-
-	GLchar* shader = new GLchar[l];
-	strcpy(shader, cShader);
-
-	return shader;
-}
-
-bool CreateShaders(void)
-{
-	GLint compiled_ok;
-
-	VertexShader = LoadShaderFromFile("vertex_shader.vert");
-	FragmentShader = LoadShaderFromFile("fragment_shader.frag");
-
-	VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(VertexShaderId, 1, &VertexShader, NULL);
-	glCompileShader(VertexShaderId);
-	glGetShaderiv(VertexShaderId, GL_COMPILE_STATUS, &compiled_ok);
-	if (!compiled_ok){ printf("Vertex shader didn't compile!\n"); return false; }
-
-	FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(FragmentShaderId, 1, &FragmentShader, NULL);
-	glCompileShader(FragmentShaderId);
-
-	glGetShaderiv(FragmentShaderId, GL_COMPILE_STATUS, &compiled_ok);
-	if (!compiled_ok){ printf("Fragment shader didn't compile!\n"); return false; }
-
-	ProgramId = glCreateProgram();
-	glAttachShader(ProgramId, VertexShaderId);
-	glAttachShader(ProgramId, FragmentShaderId);
-	glLinkProgram(ProgramId);
-	glUseProgram(ProgramId);
-	return true;
-}
-
-void DestroyShaders(void)
-{
-	glDeleteProgram(ProgramId);
 }
 
 void CreateBuffers()
@@ -288,13 +243,12 @@ bool Initialize()
 
 	matrRot = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
 
-	if (CreateShaders() == false)
+	if (CreateShaders(ProgramId, VertexShaderId, FragmentShaderId) == false)
 	{
 		printf("%s\n", "Shader could not be created");
 		return false;
 	}
-
-	CreateShaders();
+	
 	CreateBuffers();
 
 	camera.SetProgramId(ProgramId);
@@ -305,10 +259,11 @@ bool Initialize()
 	camera.aspect = GLfloat(width) / GLfloat(height);
 	camera.near_clip = znear;
 	camera.far_clip = zfar;
+	camera.move_camera = true;
 
-	ter = new Terrain(10, 10, 100, 100);
-	ter->SetVertexShader(ProgramId);
-	ter->GenerateDiamondSquareSurface(10, 7, 0.f, -5.8f, 3.5f, 0.55f);
+	ter = new Terrain(1000, 1000, 100, 100);
+	ter->SetShaderProgram(ProgramId);
+	ter->GenerateDiamondSquareSurface(1000, 8, 0.f, -20.8f, 250.5f, 0.6f);
 	//ter->GetGridPointCoordVect(5, 5);
 	light = new Light(glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
@@ -332,8 +287,8 @@ bool Initialize()
 	//mySphere = new Sphere(glm::vec3(1.0f, 1.0f, 1.0f), 1, 7, 14);
 
 	cuboid = new Cuboid(glm::vec3(3.0f, 1.0f, 2.0f), 1.0f, 1.0f, 1.0f);
-	cuboid->SetVertexShader(ProgramId);
-	/*
+	cuboid->SetShaderProgram(ProgramId);
+
 	vector<glm::vec3> bez;
 	for (int i = 0; i < 4; ++i)
 	{
@@ -342,15 +297,12 @@ bool Initialize()
 		bez.push_back(glm::vec3(6.66f, -5.0f, i * 3.33f));
 		bez.push_back(glm::vec3(10.0f, 0.0f, i * 3.33f));
 	}
-	*/
+	
 	//ter->SetBezierControlPoints(bez);
 	//ter->GenerateBezierSurface();
 
-	//ter->GenerateVertices();
-	//ter->DisplayVertices();
-
 	mySphere = new Sphere(glm::vec3(7.0f, 2.0f, 7.0f), 1.5f, 30, 30);
-	mySphere->SetVertexShader(ProgramId);
+	mySphere->SetShaderProgram(ProgramId);
 
 	// enable read-only depth buffer
 	//glDepthMask(GL_FALSE);
@@ -383,51 +335,35 @@ bool Initialize()
 	}
 	*/
 
-	tGold.loadTexture2D("data\\textures\\golddiag.jpg", true);
-	tGold.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
+	grassSamplerLoc = glGetUniformLocation(ProgramId, "tGrass");
+	rockSamplerLoc = glGetUniformLocation(ProgramId, "tRock");
+	snowSamplerLoc = glGetUniformLocation(ProgramId, "tSnow");
+	glUniform1i(grassSamplerLoc, 0);
+	glUniform1i(rockSamplerLoc, 1);
+	glUniform1i(snowSamplerLoc, 2);
+
+	tGrass.bindTexture(0);
+	tRock.bindTexture(1);
+	tSnow.bindTexture(2);
+
+	tGrass.loadTexture2D("data\\textures\\grass.jpg", true);
+	tGrass.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
+
+	tRock.loadTexture2D("data\\textures\\rock.png", true);
+	tRock.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
 
 	tSnow.loadTexture2D("data\\textures\\snow.jpg", true);
 	tSnow.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
-	glEnable(GL_TEXTURE_2D);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE);
 
 	return true;
-}
-
-glm::mat4 CameraOrientation()
-{
-	glm::mat4 orientation(1.0f);
-	//orientation = glm::translate(glm::mat4(1.0f), glm::vec3(-Obsx, -Obsy, -Obsz));
-	//orientation = glm::rotate(orientation, _CameraVerticalAngle, glm::vec3(1, 0, 0));
-	//orientation = glm::rotate(orientation, cameraRotation.x, glm::vec3(0, 1, 0));
-	//orientation = glm::translate(orientation, glm::vec3(Obsx, Obsy, Obsz));
-	return orientation;
 }
 
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	//DestroyVBO();
-	//ter->CleanUp();
-	//ter->SmoothTerrain(3);
-	//ter->Update();
-
-	tGold.bindTexture(0);
-
-	//lightPosVec[1] += 0.001f;
-	//lightPosVec[2] += 0.001f;
-	//cout << lightPosVec[0] << ' ' << lightPosVec[1] << ' ' << lightPosVec[2] << '\n';
-	points[8] = lightPosVec[0];
-	points[9] = lightPosVec[1];
-	points[10] = lightPosVec[2];
-
-	//cuboid->SetTranslation(glm::vec3(lightPosVec[0], lightPosVec[1], lightPosVec[2]));
-
-	//cout << cameraRotation.x << '\n';
-
-	cuboid->Update();
-
-	CreateVBO();
 	if (isWireFrame)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -439,66 +375,26 @@ void RenderFunction(void)
 		glEnable(GL_CULL_FACE);
 	}
 
-	//cout << Obsx << ' ' << Obsy << ' ' << Obsz << '\n';
+	//DestroyVBO();
+	//ter->CleanUp();
+	//ter->SmoothTerrain(3);
+	//ter->Update();
+	GLuint texturingFlagLocation = glGetUniformLocation(VertexShaderId, "texturing_enabled");
+	glUniform1i(texturingFlagLocation, 0);
 
-	//cout << AngleXoZ << ' ' << cameraSphereRadius << ' ' << Obsz << '\n';
+	camera.Update();
+
+	//lightPosVec[1] += 0.001f;
+	//lightPosVec[2] += 0.001f;
+	//cout << lightPosVec[0] << ' ' << lightPosVec[1] << ' ' << lightPosVec[2] << '\n';
+	points[8] = lightPosVec[0];
+	points[9] = lightPosVec[1];
+	points[10] = lightPosVec[2];
 
 	// se schimba pozitia observatorului
 	float aXoZ = M_PI * AngleXoZ / 180.0f;
 	float aYoZ = M_PI * AngleYoZ / 180.0f;
 
-	/*
-	glm::mat4 Camera::matrix() const {
-    glm::mat4 camera = glm::perspective(_fieldOfView, _viewportAspectRatio, _nearPlane, _farPlane);
-    camera *= orientation();
-    camera = glm::translate(camera, -_position);
-    return camera;
-	}
-
-	glm::mat4 Camera::orientation() const {
-		glm::mat4 orientation;
-		orientation = glm::rotate(orientation, _verticalAngle, glm::vec3(1,0,0));
-		orientation = glm::rotate(orientation, _horizontalAngle, glm::vec3(0,1,0));
-		return orientation;
-	}
-	*/
-
-	// pozitia punctului de referinta
-	// Refx=Obsx; Refy=Obsy;
-	//glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
-
-	// ------ new ----------
-	//Quaternion V = Quaternion(RefPct.x, RefPct.y, RefPct.z);
-	// AxisToRotateAround
-	//glm::vec3 A = glm::vec3(1.0f, 0.0f, 0.0f);
-	//float theta = 30.0f;
-	/*
-	Quaternion R = Quaternion(A.x * sin(cameraRotation.x * PI/ 360),
-		A.y * sin(cameraRotation.x * PI / 360),
-		A.z * sin(cameraRotation.x * PI / 360),
-		cos(cameraRotation.x * PI / 360));
-	Quaternion W = R.mult(V).mult(R.conjugate());
-	glm::vec3 new_view = glm::vec3(W.x, W.y, W.z);
-	*/
-	// verticala din planul de vizualizare 
-	//glm::vec3 Vert = glm::vec3(0.0f, 0.0f, 1.0f);
-
-	  //glm::vec3 Vert = glm::vec3(glm::inverse(CameraOrientation()) * glm::vec4(0, 1, 0, 1));
-	  //glm::vec3 RefPct2 = RotateCamera(cameraRotation.x, 0.0, 1.0, 0.0);
-	  //view = glm::lookAt(Obs, RefPct2, Vert);
-
-	// cout << Obsx << '\n';
-	// model=view;
-	// displayMatrix();
-
-	//projection = glm::ortho(xwmin, xwmax, ywmin, ywmax, znear, zfar);
-	// projection = glm::frustum(xwmin, xwmax, ywmin, ywmax, znear, zfar);
-	/*
-	projection = glm::perspective(fov, GLfloat(width) / GLfloat(height), znear, zfar);
-	projection *= CameraOrientation();
-	projection = glm::translate(projection, -Obs);
-	model = glm::mat4(1.0f);
-	*/
 	/*
 	modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
@@ -520,86 +416,41 @@ void RenderFunction(void)
 	viewPosLoc = glGetUniformLocation(ProgramId, "viewPos");
 	glUniform3f(viewPosLoc, Obs.x, Obs.y, Obs.z);
 
-	
-
 	// desenare puncte din colturi si axe
 	glPointSize(5.0f);
 	glLineWidth(1.0f);
 	
-	glDrawArrays(GL_POINTS, 0, 15);
+	//glDrawArrays(GL_POINTS, 0, 15);
+
+	tGrass.bindTexture(0);
+	tRock.bindTexture(1);
+	tSnow.bindTexture(2);
 
 	ter->Draw();
 
-	mySphere->Draw();
-	mySphere->Update();
+	//mySphere->Draw();
+	//mySphere->Update();
 
-	cuboid->Update();
+	//cuboid->Update();
 
-	cuboid->Draw();
-
-	camera.Update();
+	//wcuboid->Draw();
 
 	glutSwapBuffers();
 }
-/*
-glm::vec3 RotateCamera(double Angle, double x, double y, double z)
-{
-	Quaternion temp, quat_view, result;
-	float fa = PI * Angle / 180.0f;
 
-	temp.x = x * sin(fa / 2.0);
-	temp.y = y * sin(fa / 2.0);
-	temp.z = z * sin(fa / 2.0);
-	temp.w = cos(fa / 2.0);
-
-	quat_view.x = RefPct.x;
-	quat_view.y = RefPct.y;
-	quat_view.z = RefPct.z;
-	quat_view.w = 0;
-
-	result = temp.mult(quat_view).mult(temp.conjugate());
-
-	return glm::vec3(result.x, result.y, result.z);
-	//RefPct.x = result.x;
-	//RefPct.y = result.y;
-	//RefPct.z = result.z;
-}
-*/
 void Cleanup()
 {
 	ter->CleanUp();
 }
 
+void MouseMotionFunction(int x, int y)
+{
+	camera.Move2D(x, y);
+}
+
 void MousePassiveMotionFunction(int x, int y)
 {
-	/*
-	float radians = float(PI*(fov - 90.0f) / 180.0f);
-
-	Obsx = Refx + sin(radians) * y;
-	Obsz = Refz + cos(radians) * y;
-	Obsy = Refy + y / 2.0f;
-	*/
-	if (lastMouseX < 0)
-	{
-		lastMouseX = x;
-		lastMouseY = y;
-	}
-
-	AngleXoZ = (AngleXoZ + (x - lastMouseX) * scrollSpeed);
-	//if (AngleXoZ < 0) AngleXoZ += 360.0f;
-	//if (AngleXoZ > 360.0f) AngleXoZ -= 360.0f;
-
-	AngleYoZ = (AngleYoZ + (y - lastMouseY) * scrollSpeed);
-	//if (AngleYoZ < 0) AngleYoZ += 360.0f;
-	//if (AngleYoZ > 360.0f) AngleYoZ -= 360.0f;
-
-	//cout << AngleXoZ << ' ' << AngleYoZ << '\n';
-
-	_CameraHorizontalAngle = AngleXoZ;
-	_CameraVerticalAngle = AngleYoZ;
-
-	lastMouseX = x;
-	lastMouseY = y;
+	camera.mouse_position = glm::vec3(x, y, 0);
 }
 
 int main(int argc, char* argv[])
@@ -620,7 +471,8 @@ int main(int argc, char* argv[])
 	glutKeyboardFunc(processNormalKeys);
 	glutSpecialFunc(processSpecialKeys);
 	glutCloseFunc(Cleanup);
-	glutMotionFunc(MousePassiveMotionFunction);
+	glutMotionFunc(MouseMotionFunction);
+	glutPassiveMotionFunc(MousePassiveMotionFunction);
 	glutMainLoop();
 
 	getchar();

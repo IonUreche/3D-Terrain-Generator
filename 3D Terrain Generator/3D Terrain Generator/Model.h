@@ -1,12 +1,4 @@
 #pragma once
-#include <vector>
-#include <GL/glew.h> 
-#include <GL/freeglut.h>
-#include <glm\vec3.hpp>
-#include "glm/glm.hpp"  
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 class Model
 {
@@ -20,6 +12,7 @@ public:
 	void CleanUp();
 	void SetVertexShader(GLuint _VertexShaderId);
 	void SetFragmentShader(GLuint _FragmentShaderId);
+	void SetShaderProgram(GLuint _ShaderProgramId);
 
 	// Rotation
 	void SetRotation(glm::vec3 angles);
@@ -44,6 +37,7 @@ public:
 	float GetTranslationZ() const;
 
 	void SetTexturing(int value);
+	int GetTexturing() const;
 
 protected:
 	glm::vec3 m_pos;

@@ -27,6 +27,7 @@ public:
 	void SetGridPointCoord(int row, int col, int coordIndex, float value);
 
 	void SmoothTerrain(int squareWidth);
+	void Apply3x3Filter();
 
 private:
 
@@ -35,6 +36,8 @@ private:
 	int m_rowNum;
 	int m_colNum;
 	int m_nrIndicesToDraw;
+	float m_maxHeight;
+	float m_minHeight;
 
 	vector<glm::vec3> m_bezierControlPoints;
 
@@ -50,7 +53,9 @@ private:
 	void CreateTerrain();
 	void ClearVertexData();
 
+	void UpdateMinMaxHeight();
+
 	float GetDiamondAverage(int row, int col, int step);
-	bool IsValidGridCoord(int row, int col);
+	inline bool IsValidGridCoord(int row, int col);
 };
 

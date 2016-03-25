@@ -1,6 +1,7 @@
+#include "stdafx.h"
+
 #include "Terrain.h"
 #include "RNG.h"
-#include <iostream>
 
 Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 pos)
 {
@@ -24,6 +25,9 @@ void Terrain::GenerateVertices()
 
 	m_vertices.clear();
 
+	int k = 5;
+	float step = 1.0f / (float)(k);
+
 	for (int i = 0; i < m_rowNum; ++i)
 		for (int j = 0; j < m_colNum; ++j)
 		{
@@ -31,8 +35,21 @@ void Terrain::GenerateVertices()
 			m_vertices.push_back(0.0f);
 			m_vertices.push_back(i * sliceH);
 			
-			m_texcoords.push_back(0.0f);
-			m_texcoords.push_back(1.0f);
+			/*
+			float t_x = (float)(i & 1), t_y = (float)(j & 1);
+			m_texcoords.push_back((float) i / (float) (m_rowNum - 1));
+			m_texcoords.push_back((float) j / (float)(m_colNum - 1));
+			*/
+			int val_i = i % (2 * k) - k;
+			if (val_i < 0) val_i = -val_i;
+			float t_xi = 1.0f - val_i * step;
+
+			int val_j = j % (2 * k) - k;
+			if (val_j < 0) val_j = -val_j;
+			float t_xj = 1.0f - val_j * step;
+
+			m_texcoords.push_back(t_xi);
+			m_texcoords.push_back(t_xj);
 		}
 }
 
@@ -55,7 +72,7 @@ void Terrain::GenerateColors()
 	for (int i = 0; i < m_rowNum * m_colNum; ++i)
 	{
 		for(int t = 0; t < 3; ++ t) 
-			m_colors.push_back(RNG::GetRandFloat());
+			m_colors.push_back(RNG::getFloat());
 	}
 }
 
@@ -117,9 +134,9 @@ void Terrain::SetBezierControlPoints(vector<glm::vec3>& controlPoints)
 	m_bezierControlPoints = controlPoints;
 	for (auto &x : m_bezierControlPoints)
 	{
-		x.x += RNG::GetRandFloat(-4.1f, 5.3f);
-		x.y += RNG::GetRandFloat(-3.3f, 4.0f);
-		x.z += RNG::GetRandFloat(-5.2f, 3.4f);
+		x.x += RNG::getFloat(-4.1f, 5.3f);
+		x.y += RNG::getFloat(-3.3f, 4.0f);
+		x.z += RNG::getFloat(-5.2f, 3.4f);
 	}
 		
 }
@@ -134,6 +151,9 @@ float Terrain::BernsteinPolynomial3(int index, float u)
 
 void Terrain::GenerateBezierSurface()
 {
+	ClearVertexData();
+	CreateTerrain();
+	
 	for (int i = 0; i < m_rowNum; ++i)
 	{
 		for (int j = 0; j < m_colNum; ++j)
@@ -158,6 +178,9 @@ void Terrain::GenerateBezierSurface()
 			m_vertices[v_ind + 2] = new_point.z;
 		}
 	}
+
+	UpdateMinMaxHeight();
+	GenerateNormals();
 }
 
 void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
@@ -190,16 +213,16 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 				averageHeight = (GetGridPointCoord(i, j, 1) + GetGridPointCoord(i + PL_D2, j, 1)
 					+ GetGridPointCoord(i + PL_D2, j, 1) + GetGridPointCoord(i + PL_D2, j + PL_D2, 1)) / 4.0f;
 
-				if (RNG::GetRandFloat(0.0f, 1.0f) < 0.15f) averageHeight += RNG::GetRandFloat(rngLowRange, rngHighRange);
+				if (RNG::getFloat(0.0f, 1.0f) < 0.15f) averageHeight += RNG::getFloat(rngLowRange, rngHighRange);
 				// Add random value to averageHeight and set the midpoint height
-				SetGridPointCoord(i + PL_D2, j + PL_D2, 1, averageHeight + RNG::GetRandFloat(rngLowRange, rngHighRange));
+				SetGridPointCoord(i + PL_D2, j + PL_D2, 1, averageHeight + RNG::getFloat(rngLowRange, rngHighRange));
 
 				// Diamond Step
-				SetGridPointCoord(i + PL_D2, j, 1, GetDiamondAverage(i + PL_D2, j, PL_D2) + RNG::GetRandFloat(rngLowRange, rngHighRange));
-				SetGridPointCoord(i, j + PL_D2, 1, GetDiamondAverage(i, j + PL_D2, PL_D2) + RNG::GetRandFloat(rngLowRange, rngHighRange));
+				SetGridPointCoord(i + PL_D2, j, 1, GetDiamondAverage(i + PL_D2, j, PL_D2) + RNG::getFloat(rngLowRange, rngHighRange));
+				SetGridPointCoord(i, j + PL_D2, 1, GetDiamondAverage(i, j + PL_D2, PL_D2) + RNG::getFloat(rngLowRange, rngHighRange));
 
-				SetGridPointCoord(i + PL_D2, j + PL2, 1, GetDiamondAverage(i + PL_D2, j + PL2, PL_D2) + RNG::GetRandFloat(rngLowRange, rngHighRange));
-				SetGridPointCoord(i + PL2, j + PL_D2, 1, GetDiamondAverage(i + PL2, j + PL_D2, PL_D2) + RNG::GetRandFloat(rngLowRange, rngHighRange));
+				SetGridPointCoord(i + PL_D2, j + PL2, 1, GetDiamondAverage(i + PL_D2, j + PL2, PL_D2) + RNG::getFloat(rngLowRange, rngHighRange));
+				SetGridPointCoord(i + PL2, j + PL_D2, 1, GetDiamondAverage(i + PL2, j + PL_D2, PL_D2) + RNG::getFloat(rngLowRange, rngHighRange));
 			}
 		}
 
@@ -207,9 +230,10 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 		rngHighRange *= rngDivisionValue;
 	}
 
-	for (int i = 0; i <= 7; ++i)
+	 for(int i = 0; i <= 1; ++i)
 		SmoothTerrain(3);
 
+	UpdateMinMaxHeight();
 	GenerateNormals();
 }
 
@@ -242,7 +266,7 @@ void Terrain::SetGridSize(int rowNum, int colNum)
 	m_colNum = colNum;
 }
 
-bool Terrain::IsValidGridCoord(int row, int col)
+inline bool Terrain::IsValidGridCoord(int row, int col)
 {
 	int tmp = 3 * (row * m_colNum + col);
 	return 0 <= tmp && tmp < m_vertices.size();
@@ -310,6 +334,49 @@ void Terrain::SmoothTerrain(int squareWidth)
 		{
 			m_vertices[3 * t + 1] = m_newYCoords[t];
 		}
+
+	UpdateMinMaxHeight();
+}
+
+void Terrain::Apply3x3Filter()
+{
+	vector<GLfloat> m_newYCoords;
+	/*
+	float f[3][3] = { { 0.0625, 0.125, 0.0625 },
+					{ 0.125, 0.250, 0.125 },
+					{ 0.0625, 0.125, 0.0625 } };
+	*/
+	float f[3][3] = {   { -0.5, -1.0, -0.5 },
+						{ 0.0, 0.0, 0.0 },
+						{ 0.5, 1.0, 0.5 } };
+	for (int i = 0; i < m_rowNum; ++i)
+	for (int j = 0; j < m_colNum; ++j)
+	{
+		int nr = 0;
+		float sum = 0.0f;
+		for (int dx = -1; dx <= 1; ++dx)
+		for (int dy = -1; dy <= 1; ++dy)
+		{
+			if (IsValidGridCoord(i + dx, j + dy))
+			{
+				++nr;
+				sum += GetGridPointCoord(i + dx, j + dy, 1) * f[dx+1][dy+1];
+			}
+			else
+			{
+				sum += GetGridPointCoord(i, j, 1) * f[dx + 1][dy + 1];
+			}
+		}
+
+		m_newYCoords.push_back(sum);
+	}
+
+	for (int t = 0; t < m_newYCoords.size(); ++t)
+	{
+		m_vertices[3 * t + 1] = m_newYCoords[t];
+	}
+
+	UpdateMinMaxHeight();
 }
 
 void Terrain::GenerateNormals()
@@ -370,4 +437,21 @@ void Terrain::GenerateNormals()
 		}
 	}
 
+}
+
+void Terrain::UpdateMinMaxHeight()
+{
+	if (m_vertices.size() < 2) return;
+	m_maxHeight = m_minHeight = m_vertices[1];
+	for (int i = 4; i < m_vertices.size(); i += 3)
+	{
+		if (m_vertices[i] > m_maxHeight) m_maxHeight = m_vertices[i];
+		if (m_vertices[i] < m_minHeight) m_minHeight = m_vertices[i];
+	}
+
+	GLuint minHeightLocation = glGetUniformLocation(ProgramId, "minHeight");
+	glUniform1f(minHeightLocation, m_minHeight);
+
+	GLuint maxHeightLocation = glGetUniformLocation(ProgramId, "maxHeight");
+	glUniform1f(maxHeightLocation, m_maxHeight);
 }

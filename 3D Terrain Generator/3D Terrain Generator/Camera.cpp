@@ -1,4 +1,5 @@
-//camera.cpp
+#include "stdafx.h"
+
 #include "camera.h"
 
 using namespace std;
@@ -173,8 +174,8 @@ void Camera::Move2D(int x, int y) {
 	glm::vec3 mouse_delta = mouse_position - glm::vec3(x, y, 0);
 	//if the camera is moving, meaning that the mouse was clicked and dragged, change the pitch and heading
 	if (move_camera) {
-		ChangeHeading(.08f * mouse_delta.x);
-		ChangePitch(.08f * mouse_delta.y);
+		ChangeHeading(.01f * mouse_delta.x);
+		ChangePitch(.01f * mouse_delta.y);
 	}
 	mouse_position = glm::vec3(x, y, 0);
 }

@@ -1,7 +1,7 @@
 
 // Vertex shader
  
- #version 400
+ #version 330
 
 uniform mat4 model;
 uniform mat4 view;

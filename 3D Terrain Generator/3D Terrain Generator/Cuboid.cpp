@@ -1,6 +1,7 @@
-#include "Cuboid.h"
+#include "stdafx.h"
 #include "RNG.h"
 
+#include "Cuboid.h"
 
 Cuboid::Cuboid(glm::vec3 centerPos, float length, float height, float width)
 {
@@ -68,9 +69,9 @@ void Cuboid::GenerateColors()
 {
 	for (int i = 0; i < m_vertices.size(); i += 3)
 	{
-		m_colors.push_back(RNG::GetRandFloat()); 
-		m_colors.push_back(RNG::GetRandFloat());
-		m_colors.push_back(RNG::GetRandFloat());
+		m_colors.push_back(RNG::getFloat()); 
+		m_colors.push_back(RNG::getFloat());
+		m_colors.push_back(RNG::getFloat());
 	}
 		
 }

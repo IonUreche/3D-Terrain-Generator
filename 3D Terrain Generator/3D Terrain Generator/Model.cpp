@@ -1,5 +1,6 @@
-#include "Model.h"
+#include "stdafx.h"
 
+#include "Model.h"
 
 Model::Model()
 {
@@ -24,10 +25,10 @@ void Model::ApplyTransform()
 		* m_transform
 		* glm::translate(glm::mat4(1.0f), -m_centerPos);
 
-	modelMatrixLocation = glGetUniformLocation(VertexShaderId, "model");
+	modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &m_transform[0][0]);
 
-	// 	= glGetUniformLocation(VertexShaderId, "model");
+	// 	= glGetUniformLocation(ProgramId, "model");
 	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &m_transform[0][0]);
 }
 
@@ -67,7 +68,7 @@ void Model::CreateVBO()
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	//}
-	texturingFlagLocation = glGetUniformLocation(VertexShaderId, "texturing_enabled");
+	texturingFlagLocation = glGetUniformLocation(ProgramId, "texturing_enabled");
 	glUniform1i(texturingFlagLocation, m_texturingEnabled);
 	//glEnableVertexAttribArray(GL_PRIMITIVE_RESTART);
 	//glPrimitiveRestartIndex(m_colNum * m_rowNum);
@@ -94,6 +95,8 @@ void Model::DestroyVBO()
 	glDeleteBuffers(1, &IndicesBufferId);
 	glDeleteBuffers(1, &NormalsBufferId);
 	glDeleteBuffers(1, &TextureCoordsBufferId);
+	ColorsBufferId = VerticesBufferId = IndicesBufferId = 0;
+	NormalsBufferId = TextureCoordsBufferId = 0;
 }
 
 void Model::CleanUp()
@@ -109,6 +112,11 @@ void Model::SetVertexShader(GLuint _VertexShaderId)
 void Model::SetFragmentShader(GLuint _FragmentShaderId)
 {
 	FragmentShaderId = _FragmentShaderId;
+}
+
+void Model::SetShaderProgram(GLuint _ShaderProgramId)
+{
+	ProgramId = _ShaderProgramId;
 }
 
 // Rotation
@@ -196,4 +204,9 @@ float Model::GetTranslationZ() const
 void Model::SetTexturing(int value)
 {
 	m_texturingEnabled = (int)(value != 0);
+}
+
+int Model::GetTexturing() const
+{
+	return m_texturingEnabled;
 }

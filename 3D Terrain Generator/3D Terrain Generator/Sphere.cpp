@@ -1,6 +1,8 @@
+#include "stdafx.h"
+
 #include "Sphere.h"
-#include <cmath> 
 #include "RNG.h"
+
 #define M_PI       3.14159265358979323846
 #define M_PI_2     1.57079632679489661923
 
@@ -54,10 +56,10 @@ void Sphere::GenerateVertices()
 	m_vertices.resize(m_rings * m_sectors * 3);
 	m_colors.resize(m_rings * m_sectors * 3);
 	m_normals.resize(m_rings * m_sectors * 3);
-	m_texcoords.resize(m_rings * m_sectors * 2);
+	//m_texcoords.resize(m_rings * m_sectors * 2);
 	std::vector<GLfloat>::iterator v = m_vertices.begin();
 	std::vector<GLfloat>::iterator n = m_normals.begin();
-	std::vector<GLfloat>::iterator t = m_texcoords.begin();
+	//std::vector<GLfloat>::iterator t = m_texcoords.begin();
 	std::vector<GLfloat>::iterator c = m_colors.begin();
 	for (r = 0; r < m_rings; r++)
 	for (s = 0; s < m_sectors; s++) {
@@ -115,7 +117,7 @@ void Sphere::GenerateColors()
 	for (int i = 0; i < m_rings * m_sectors; ++i)
 	{
 		for (int t = 0; t < 3; ++t)
-			m_colors.push_back(RNG::GetRandFloat());
+			m_colors.push_back(RNG::getFloat());
 	}
 }
 

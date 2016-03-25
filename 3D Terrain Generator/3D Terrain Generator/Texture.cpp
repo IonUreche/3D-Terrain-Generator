@@ -1,18 +1,8 @@
 
-#include <windows.h>
-
-#include <gl/glew.h>
-#include <glm/glm.hpp>
-
-#include <string>
-
+#include "stdafx.h"
 using namespace std;
 
 #include "texture.h"
-
-#include <FreeImage.h>
-
-#pragma comment(lib, "FreeImage.lib")
 
 CTexture::CTexture()
 {
