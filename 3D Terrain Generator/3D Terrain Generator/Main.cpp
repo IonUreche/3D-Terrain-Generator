@@ -1,8 +1,7 @@
 
 #include "stdafx.h"
-#include "Helpers.h"
-
-#define M_PI       3.14159265358979323846
+#include "Helper.h"
+#include "Skybox.h"
 
 #include "Camera.h"
 #include "Cuboid.h"
@@ -24,17 +23,19 @@ matrRotlLocation,codColLocation,
 grassSamplerLoc, rockSamplerLoc, snowSamplerLoc;
 
 Camera camera;
+extern Camera *g_camera = &camera;
 
 Sphere *mySphere;
+Skybox skybox;
 
 int codCol;
-float PI = 3.141592;
+float PI = 3.141592f;
 
 // matrice utilizate
 glm::mat4 model, matrRot;
 
-glm::vec3 Obs = glm::vec3(-5.0f, 5.0f, -5.0f);
-glm::vec3 RefPct = glm::vec3(10.0f, 2.0f, 5.0f);
+glm::vec3 Obs = glm::vec3(5.0f, 13.0f, 5.0f);
+glm::vec3 RefPct = glm::vec3(20.0f, 0.0f, 20.0f);
 
 float *points, *colors;
 
@@ -42,7 +43,7 @@ float *points, *colors;
 float Vx = 0.0;
 glm::mat4 view;
 
-int isWireFrame = 1;
+int isWireFrame = 0;
 
 Light *light;
 Terrain *ter;
@@ -140,26 +141,12 @@ void processNormalKeys(unsigned char key, int x, int y)
 		lightPosVec[2] -= 0.1f;
 		break;
 	case '1': 
-		if (cameraRotation.x < 30.0)
-		{
-			cameraRotation.x += 0.01;
-			camera.ChangePitch(0.01);
-		}
 		break;
 	case '2':
-		if (cameraRotation.x > -30.0)
-		{
-			cameraRotation.x -= 0.01;
-			camera.ChangePitch(-0.01);
-		}
 		break;
 	case '3':
-		cameraRotation.y += 0.01;
-		camera.ChangeHeading(cameraRotation.y);
 		break;
 	case '4':
-		cameraRotation.y -= 0.01;
-		camera.ChangeHeading(cameraRotation.y);
 		break;
 	case '5':
 		ter->SmoothTerrain(3);
@@ -243,12 +230,16 @@ bool Initialize()
 
 	matrRot = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
 
-	if (CreateShaders(ProgramId, VertexShaderId, FragmentShaderId) == false)
+	if (g_helper->CreateShaders("data\\shaders\\Terrain_vertex_shader.vert", "data\\shaders\\Terrain_fragment_shader.frag", 
+		ProgramId, VertexShaderId, FragmentShaderId) == false)
 	{
-		printf("%s\n", "Shader could not be created");
+		cout << "Shader could not be created";
 		return false;
 	}
 	
+	skybox.Init(100);
+
+	glUseProgram(ProgramId);
 	CreateBuffers();
 
 	camera.SetProgramId(ProgramId);
@@ -261,9 +252,9 @@ bool Initialize()
 	camera.far_clip = zfar;
 	camera.move_camera = true;
 
-	ter = new Terrain(1000, 1000, 100, 100);
+	ter = new Terrain(100, 100, 100, 100, glm::vec3(0.0, 0.0, 0.0));
 	ter->SetShaderProgram(ProgramId);
-	ter->GenerateDiamondSquareSurface(1000, 8, 0.f, -20.8f, 250.5f, 0.6f);
+	ter->GenerateDiamondSquareSurface(100, 8, 0.f, -20.8f, 250.5f, 0.6f);
 	//ter->GetGridPointCoordVect(5, 5);
 	light = new Light(glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
@@ -338,13 +329,9 @@ bool Initialize()
 	grassSamplerLoc = glGetUniformLocation(ProgramId, "tGrass");
 	rockSamplerLoc = glGetUniformLocation(ProgramId, "tRock");
 	snowSamplerLoc = glGetUniformLocation(ProgramId, "tSnow");
-	glUniform1i(grassSamplerLoc, 0);
-	glUniform1i(rockSamplerLoc, 1);
-	glUniform1i(snowSamplerLoc, 2);
-
-	tGrass.bindTexture(0);
-	tRock.bindTexture(1);
-	tSnow.bindTexture(2);
+	glUniform1i(grassSamplerLoc, 1);
+	glUniform1i(rockSamplerLoc, 2);
+	glUniform1i(snowSamplerLoc, 3);
 
 	tGrass.loadTexture2D("data\\textures\\grass.jpg", true);
 	tGrass.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
@@ -355,6 +342,10 @@ bool Initialize()
 	tSnow.loadTexture2D("data\\textures\\snow.jpg", true);
 	tSnow.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
 
+	tGrass.bindTexture(1);
+	tRock.bindTexture(2);
+	tSnow.bindTexture(3);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE);
 
@@ -364,25 +355,32 @@ bool Initialize()
 void RenderFunction(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_CULL_FACE);
+
+	skybox.Draw(camera.view, camera.projection);
+
 	if (isWireFrame)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnable(GL_CULL_FACE);
 	}
+	/*
 	else
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glEnable(GL_CULL_FACE);
 	}
-
+	*/
+	camera.Update();
+	
 	//DestroyVBO();
 	//ter->CleanUp();
 	//ter->SmoothTerrain(3);
 	//ter->Update();
 	GLuint texturingFlagLocation = glGetUniformLocation(VertexShaderId, "texturing_enabled");
 	glUniform1i(texturingFlagLocation, 0);
-
-	camera.Update();
 
 	//lightPosVec[1] += 0.001f;
 	//lightPosVec[2] += 0.001f;
@@ -392,9 +390,9 @@ void RenderFunction(void)
 	points[10] = lightPosVec[2];
 
 	// se schimba pozitia observatorului
-	float aXoZ = M_PI * AngleXoZ / 180.0f;
-	float aYoZ = M_PI * AngleYoZ / 180.0f;
-
+	float aXoZ = (float) (M_PI * AngleXoZ / 180.0f);
+	float aYoZ = (float) (M_PI * AngleYoZ / 180.0f);
+	
 	/*
 	modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
@@ -403,6 +401,7 @@ void RenderFunction(void)
 	projLocation = glGetUniformLocation(ProgramId, "projection");
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
 	*/
+	
 	lightPosLoc = glGetUniformLocation(ProgramId, "lightPosition");
 	glUniform3fv(lightPosLoc, 1, &lightPosVec[0]);
 
@@ -422,11 +421,11 @@ void RenderFunction(void)
 	
 	//glDrawArrays(GL_POINTS, 0, 15);
 
-	tGrass.bindTexture(0);
-	tRock.bindTexture(1);
-	tSnow.bindTexture(2);
-
-	ter->Draw();
+	//tGrass.bindTexture(0);
+	//tRock.bindTexture(1);
+	//tSnow.bindTexture(2);
+	
+	ter->Draw(camera.view, camera.projection);
 
 	//mySphere->Draw();
 	//mySphere->Update();

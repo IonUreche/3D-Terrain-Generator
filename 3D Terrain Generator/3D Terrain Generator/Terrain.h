@@ -10,6 +10,7 @@ public:
 	~Terrain();
 
 	void Draw() override;
+	void Draw(glm::mat4 c_view, glm::mat4 c_projection);
 
 	void Update() override;
 

@@ -3,13 +3,13 @@
 #include "Terrain.h"
 #include "RNG.h"
 
-Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 pos)
+Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 center_pos)
 {
 	m_width = width;
 	m_height = height;
 	m_rowNum = rowLen;
 	m_colNum = colLen;
-	m_centerPos = glm::vec3(m_pos.x + m_width / 2, m_pos.y, m_pos.z + m_height / 2);
+	m_centerPos = center_pos;
 
 	m_nrIndicesToDraw = 3;
 }
@@ -26,14 +26,17 @@ void Terrain::GenerateVertices()
 	m_vertices.clear();
 
 	int k = 5;
+	float pos_x = m_centerPos.x - m_width / 2;
+	float pos_z = m_centerPos.z - m_height / 2;
+
 	float step = 1.0f / (float)(k);
 
 	for (int i = 0; i < m_rowNum; ++i)
 		for (int j = 0; j < m_colNum; ++j)
 		{
-			m_vertices.push_back(j * sliceW);
-			m_vertices.push_back(0.0f);
-			m_vertices.push_back(i * sliceH);
+			m_vertices.push_back(pos_x + j * sliceW);
+			m_vertices.push_back(m_pos.y);
+			m_vertices.push_back(pos_z + i * sliceH);
 			
 			/*
 			float t_x = (float)(i & 1), t_y = (float)(j & 1);
@@ -109,7 +112,27 @@ void Terrain::DisplayIndexes()
 
 void Terrain::Draw()
 {
+
+}
+
+void Terrain::Draw(glm::mat4 c_view, glm::mat4 c_projection)
+{
 	//glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+	glUseProgram(ProgramId);
+
+	GLuint modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &m_transform[0][0]);
+	GLuint viewLocation = glGetUniformLocation(ProgramId, "view");
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &c_view[0][0]);
+	GLuint projLocation = glGetUniformLocation(ProgramId, "projection");
+	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &c_projection[0][0]);
+
+	GLuint minHeightLocation = glGetUniformLocation(ProgramId, "minHeight");
+	glUniform1f(minHeightLocation, m_minHeight);
+
+	GLuint maxHeightLocation = glGetUniformLocation(ProgramId, "maxHeight");
+	glUniform1f(maxHeightLocation, m_maxHeight);
+
 	CreateVBO();
 	ApplyTransform();
 	glDrawElements(GL_TRIANGLE_STRIP, m_indices.size(), GL_UNSIGNED_INT, 0);
@@ -123,7 +146,7 @@ void Terrain::Update()
 	//m_rotationAngles.y += 0.001f;
 	m_rotationAngles.z += 0.001f;
 
-	if (m_nrIndicesToDraw + 1 > m_indices.size())
+	if (m_nrIndicesToDraw + 1 > (int) m_indices.size())
 		m_nrIndicesToDraw = m_indices.size();
 	else
 		m_nrIndicesToDraw += 1;
@@ -230,7 +253,7 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 		rngHighRange *= rngDivisionValue;
 	}
 
-	 for(int i = 0; i <= 1; ++i)
+	 for(int i = 0; i <= 7; ++i)
 		SmoothTerrain(3);
 
 	UpdateMinMaxHeight();
@@ -269,7 +292,7 @@ void Terrain::SetGridSize(int rowNum, int colNum)
 inline bool Terrain::IsValidGridCoord(int row, int col)
 {
 	int tmp = 3 * (row * m_colNum + col);
-	return 0 <= tmp && tmp < m_vertices.size();
+	return 0 <= tmp && tmp < (int) m_vertices.size();
 }
 
 glm::vec3 Terrain::GetGridPointCoordVect(int row, int col)
@@ -330,7 +353,7 @@ void Terrain::SmoothTerrain(int squareWidth)
 			m_newYCoords.push_back(aver / (float) nr);
 		}
 
-		for (int t = 0; t < m_newYCoords.size(); ++t)
+		for (size_t t = 0; t < m_newYCoords.size(); ++t)
 		{
 			m_vertices[3 * t + 1] = m_newYCoords[t];
 		}
@@ -371,7 +394,7 @@ void Terrain::Apply3x3Filter()
 		m_newYCoords.push_back(sum);
 	}
 
-	for (int t = 0; t < m_newYCoords.size(); ++t)
+	for (size_t t = 0; t < m_newYCoords.size(); ++t)
 	{
 		m_vertices[3 * t + 1] = m_newYCoords[t];
 	}
@@ -443,15 +466,9 @@ void Terrain::UpdateMinMaxHeight()
 {
 	if (m_vertices.size() < 2) return;
 	m_maxHeight = m_minHeight = m_vertices[1];
-	for (int i = 4; i < m_vertices.size(); i += 3)
+	for (size_t i = 4; i < m_vertices.size(); i += 3)
 	{
 		if (m_vertices[i] > m_maxHeight) m_maxHeight = m_vertices[i];
 		if (m_vertices[i] < m_minHeight) m_minHeight = m_vertices[i];
 	}
-
-	GLuint minHeightLocation = glGetUniformLocation(ProgramId, "minHeight");
-	glUniform1f(minHeightLocation, m_minHeight);
-
-	GLuint maxHeightLocation = glGetUniformLocation(ProgramId, "maxHeight");
-	glUniform1f(maxHeightLocation, m_maxHeight);
 }

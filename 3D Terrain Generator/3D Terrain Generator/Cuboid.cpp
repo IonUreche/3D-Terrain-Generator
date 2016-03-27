@@ -67,7 +67,7 @@ void Cuboid::GenerateIndexes()
 
 void Cuboid::GenerateColors()
 {
-	for (int i = 0; i < m_vertices.size(); i += 3)
+	for (size_t i = 0; i < m_vertices.size(); i += 3)
 	{
 		m_colors.push_back(RNG::getFloat()); 
 		m_colors.push_back(RNG::getFloat());

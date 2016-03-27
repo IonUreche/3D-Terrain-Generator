@@ -61,13 +61,6 @@ void Camera::Update() {
 	view = glm::lookAt(camera_position, camera_look_at, camera_up);
 	model = glm::mat4(1.0f);
 
-	GLuint modelMatrixLocation = glGetUniformLocation(ProgramId, "model");
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-	GLuint viewLocation = glGetUniformLocation(ProgramId, "view");
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
-	GLuint projLocation = glGetUniformLocation(ProgramId, "projection");
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
-
 	//MVP = projection * view * model;
 	//glLoadMatrixf(glm::value_ptr(MVP));
 }

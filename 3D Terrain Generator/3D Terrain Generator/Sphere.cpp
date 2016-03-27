@@ -3,9 +3,6 @@
 #include "Sphere.h"
 #include "RNG.h"
 
-#define M_PI       3.14159265358979323846
-#define M_PI_2     1.57079632679489661923
-
 Sphere::Sphere(glm::vec3 pos, float radius, unsigned int rings, unsigned int sectors)
 {
 	m_pos = m_centerPos = pos;
@@ -49,8 +46,8 @@ void Sphere::Update()
 
 void Sphere::GenerateVertices() 
 {
-	float const R = 1. / (float)(m_rings - 1);
-	float const S = 1. / (float)(m_sectors - 1);
+	float const R = 1.0f / (float)(m_rings - 1);
+	float const S = 1.0f / (float)(m_sectors - 1);
 	int r, s;
 
 	m_vertices.resize(m_rings * m_sectors * 3);
@@ -66,8 +63,8 @@ void Sphere::GenerateVertices()
 		//float y = sin(-M_PI_2 + M_PI * r * R);
 		//float x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
 		//float z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
-		float phi = 2 * M_PI * s * S;
-		float theta = M_PI * r * R - M_PI_2;
+		float phi = (float) (2.0f * M_PI * s * S);
+		float theta = (float) (M_PI * r * R - M_PI_2);
 
 		float x = cos(theta) * cos(phi);
 		float y = cos(theta) * sin(phi);
@@ -86,7 +83,7 @@ void Sphere::GenerateVertices()
 
 		float yy = y * m_radius + m_pos.y;
 		float ymin = m_pos.y - m_radius;
-		float Red = (yy - ymin) / (2.0 * m_radius);
+		float Red = (float)((yy - ymin) / (2.0 * m_radius));
 
 		*c++ = Red; // 1.0f - (m_pos;
 		*c++ = ((float) s / (float) (m_sectors - 1)) * (1.0f - fabs(y - m_pos.y) / m_radius);
@@ -183,7 +180,7 @@ void Sphere::GenerateNormals()
 bool Sphere::IsValidSphereCoord(int ring, int sector)
 {
 	int index = 3 * (ring * m_sectors + sector);
-	if (index < 0 || index >= m_vertices.size()) return false;
+	if (index < 0 || index >= (int)m_vertices.size()) return false;
 	return true;
 }
 

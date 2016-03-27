@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{a00be003-91d6-4db2-8577-1fd1d86e002a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Skybox">
+      <UniqueIdentifier>{8ef78a7e-135e-40f0-b894-bf12a67bb74f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Terrain">
+      <UniqueIdentifier>{dfc1e05b-3162-4430-ae93-1dd0a00324f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -42,14 +51,12 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vertex_shader.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="fragment_shader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Terrain.h">
@@ -76,11 +83,28 @@
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Helpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\shaders\Terrain_vertex_shader.vert">
+      <Filter>Resource Files\Shaders\Terrain</Filter>
+    </None>
+    <None Include="data\shaders\Terrain_fragment_shader.frag">
+      <Filter>Resource Files\Shaders\Terrain</Filter>
+    </None>
+    <None Include="data\shaders\Skybox_vertex_shader.vert">
+      <Filter>Resource Files\Shaders\Skybox</Filter>
+    </None>
+    <None Include="data\shaders\Skybox_fragment_shader.frag">
+      <Filter>Resource Files\Shaders\Skybox</Filter>
+    </None>
   </ItemGroup>
 </Project>

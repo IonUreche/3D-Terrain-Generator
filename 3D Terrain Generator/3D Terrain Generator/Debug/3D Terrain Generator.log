@@ -1,32 +1,31 @@
-﻿Build started 3/25/2016 23:08:19.
+﻿Build started 3/27/2016 20:16:54.
      1>Project "E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\3D Terrain Generator\3D Terrain Generator.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\3D Terrain Generator.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\3D Terrain Generator.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp Skybox.cpp Terrain.cpp
+         Terrain.cpp
+         Skybox.cpp
          Main.cpp
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\helpers.h(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\string.h(112) : see declaration of 'strcpy'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(31): warning C4305: 'initializing' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(145): warning C4305: '+=' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(146): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(152): warning C4305: '-=' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(153): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(157): warning C4305: '+=' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(161): warning C4305: '-=' : truncation from 'double' to 'float'
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(395): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(396): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib FreeImage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.lib" /MACHINE:X86 Debug\Camera.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib FreeImage.lib SOIL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.lib" /MACHINE:X86 Debug\Camera.obj
          Debug\Cuboid.obj
+         Debug\Helper.obj
          Debug\Light.obj
          Debug\Main.obj
          Debug\Model.obj
          Debug\RNG.obj
+         Debug\Skybox.obj
          Debug\Sphere.obj
          Debug\Terrain.obj
          Debug\Texture.obj
+         SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
+     1>LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
+     1>Camera.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification
+     1>LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+         Generating code
+         Finished generating code
          3D Terrain Generator.vcxproj -> E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe
      1>Done Building Project "E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\3D Terrain Generator\3D Terrain Generator.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.74
+Time Elapsed 00:00:07.47
