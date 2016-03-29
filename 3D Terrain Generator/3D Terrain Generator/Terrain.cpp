@@ -253,7 +253,7 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 		rngHighRange *= rngDivisionValue;
 	}
 
-	 for(int i = 0; i <= 7; ++i)
+	 for(int i = 0; i <= 1; ++i)
 		SmoothTerrain(3);
 
 	UpdateMinMaxHeight();

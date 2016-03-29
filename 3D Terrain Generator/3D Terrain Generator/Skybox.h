@@ -15,6 +15,7 @@ private:
 	void GenerateBuffers();
 	void DestroyBuffers();
 
+	GLfloat m_skyboxVertices[108];
 	int m_cubeSize;
 	GLuint m_textureID;
 	GLuint m_cubemapTexture;

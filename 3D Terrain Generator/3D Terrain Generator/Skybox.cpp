@@ -39,6 +39,8 @@ bool Skybox::Init(int cubeSize)
 	m_faces.push_back("data\\textures\\skybox\\front.jpg");
 	m_cubemapTexture = loadCubemap(m_faces);
 
+	//CreateVBO();
+
 	return true;
 }
 
@@ -66,6 +68,8 @@ GLuint Skybox::loadCubemap(std::vector<const GLchar*> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	
+	CreateVBO();
 
 	return textureID;
 }
@@ -116,30 +120,16 @@ void Skybox::CreateVBO()
 		-1.0f, -1.0f, 1.0f,
 		1.0f, -1.0f, 1.0f
 	};
-	/*
-	// Setup cube VAO
-	GLuint m_cubeVAO, m_cubeVBO;
-	glGenVertexArrays(1, &m_cubeVAO);
-	glGenBuffers(1, &m_cubeVBO);
-	glBindVertexArray(m_cubeVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_cubeVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glBindVertexArray(0);
-	*/
+
 	for (int i = 0; i < 36 * 3; ++i)
-		skyboxVertices[i] *= 100.0f;
+		m_skyboxVertices[i] = skyboxVertices[i] * m_cubeSize;
 	// Setup skybox VAO
 	
 	glBindVertexArray(m_skyboxVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(m_skyboxVertices), &m_skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	
 }
 
 void Skybox::GenerateBuffers()
@@ -159,23 +149,33 @@ void Skybox::DestroyBuffers()
 
 void Skybox::Draw(glm::mat4 c_view, glm::mat4 c_projection)
 {
-	glDepthMask(GL_FALSE);
-	//skyboxShader.Use();
-	// ... Set view and projection matrix
+	//glDepthMask(GL_FALSE);
+	GLint OldCullFaceMode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &OldCullFaceMode);
+	GLint OldDepthFuncMode;
+	glGetIntegerv(GL_DEPTH_FUNC, &OldDepthFuncMode);
 
+	glCullFace(GL_FRONT);
+	glDepthFunc(GL_LEQUAL);
+	
 	glUseProgram(m_ShaderProgramId);
 
 	glm::mat4 view = glm::mat4(glm::mat3(c_view));	// Remove any translation component of the view matrix
 	glm::mat4 projection = c_projection;// glm::perspective(camera.Zoom, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgramId, "view"), 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgramId, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-	//
-	CreateVBO();
+	
+	glBindVertexArray(m_skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_skyboxVBO);
+	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_textureID);
 	glUniform1i(glGetUniformLocation(m_ShaderProgramId, "skybox"), 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
-	glDepthMask(GL_TRUE);
+
+	//glDepthMask(GL_TRUE);
+	glCullFace(OldCullFaceMode);
+	glDepthFunc(OldDepthFuncMode);
 }
