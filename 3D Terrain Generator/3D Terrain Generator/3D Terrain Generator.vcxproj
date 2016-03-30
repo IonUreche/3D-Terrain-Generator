@@ -84,6 +84,7 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="RNG.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Sphere.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="Helper.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="RNG.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Sphere.h" />

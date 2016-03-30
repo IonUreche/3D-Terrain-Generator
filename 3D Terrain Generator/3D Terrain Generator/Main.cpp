@@ -45,7 +45,7 @@ float scrollSpeed = 0.01f, cameraSphereRadius = 14.0f;
 float CenterX = 0.0f, CenterY = 0.0f, CenterZ = 0.0f;
 
 // elemente pentru matricea de proiectie
-float width = 1080, height = 720, znear = 0.1f, zfar = 15000.0f, fov = 45;
+float width = 1080, height = 720, znear = 0.1f, zfar = 20000.0f, fov = 45;
 glm::mat4 projection;
 
 // Light
@@ -160,7 +160,7 @@ bool Initialize()
 		return false;
 	}
 	
-	skybox.Init(5000);
+	skybox.Init(10000);
 
 	glUseProgram(ProgramId);
 
@@ -174,10 +174,11 @@ bool Initialize()
 	camera.far_clip = zfar;
 	camera.move_camera = true;
 
-	ter = new Terrain(100, 100, 100, 100, glm::vec3(0.0, 0.0, 0.0));
+	ter = new Terrain(10000, 10000, 250, 250, glm::vec3(0.0, 0.0, 0.0));
 	ter->SetShaderProgram(ProgramId);
-	ter->GenerateDiamondSquareSurface(5000, 8, 0.f, -20.8f, 350.5f, 0.9f);
+	//ter->GenerateDiamondSquareSurface(5000, 8, 0.f, -20.8f, 350.5f, 0.9f);
 	//ter->GetGridPointCoordVect(5, 5);
+	ter->ApplyPerlinNoise();
 	light = new Light(glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
 	// Set uniform fragment shader

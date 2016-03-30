@@ -20,6 +20,8 @@ public:
 	void GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
 		                              float rngLowRange, float rngHighRange, float rngDivisionValue);
 
+	void ApplyPerlinNoise();
+
 	void SetSize(int width, int height);
 	void SetGridSize(int rowNum, int colNum);
 

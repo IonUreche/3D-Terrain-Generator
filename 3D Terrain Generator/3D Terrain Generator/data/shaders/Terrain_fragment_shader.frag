@@ -60,11 +60,17 @@ void main(void)
 	}
 	else
 	{
+		float height_treshhold = 0.85f;
 		vec3 up = vec3(0.0, 1.0, 0.0);
 		float cos_angle = dot(fragNormal, up) / (length(fragNormal) * length(fragNormal));
 		vec4 temp = vec4(1.0);
-		if(fragVert.y < 0.9f * maxHeight) temp = mix(texture2D(tGrass, texCoords), texture2D(tRock, texCoords), abs(1 - cos_angle));
-			else temp = mix(texture2D(tSnow, texCoords), texture2D(tRock, texCoords), abs(1 - cos_angle));
+		if(fragVert.y < height_treshhold * maxHeight) temp = mix(texture2D(tGrass, texCoords), texture2D(tRock, texCoords), abs(1 - cos_angle));
+			else 
+			{
+				float ww = fragVert.y / maxHeight;
+				float cf = (ww - height_treshhold) / (1 - height_treshhold);
+				temp = mix(texture2D(tGrass, texCoords), texture2D(tSnow, texCoords), cf);
+			}
 		//temp = texture2D(tSnow, texCoords);
 		out_Color = temp;
 	}

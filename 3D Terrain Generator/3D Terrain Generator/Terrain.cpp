@@ -2,6 +2,7 @@
 
 #include "Terrain.h"
 #include "RNG.h"
+#include "PerlinNoise.h"
 
 Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 center_pos)
 {
@@ -359,19 +360,22 @@ void Terrain::SmoothTerrain(int squareWidth)
 		}
 
 	UpdateMinMaxHeight();
+	GenerateNormals();
 }
 
 void Terrain::Apply3x3Filter()
 {
 	vector<GLfloat> m_newYCoords;
-	/*
+	
 	float f[3][3] = { { 0.0625, 0.125, 0.0625 },
 					{ 0.125, 0.250, 0.125 },
 					{ 0.0625, 0.125, 0.0625 } };
-	*/
+	
+	/*
 	float f[3][3] = {   { -0.5, -1.0, -0.5 },
 						{ 0.0, 0.0, 0.0 },
 						{ 0.5, 1.0, 0.5 } };
+	*/
 	for (int i = 0; i < m_rowNum; ++i)
 	for (int j = 0; j < m_colNum; ++j)
 	{
@@ -400,12 +404,16 @@ void Terrain::Apply3x3Filter()
 	}
 
 	UpdateMinMaxHeight();
+	GenerateNormals();
 }
 
 void Terrain::GenerateNormals()
 {
-	m_normals.clear();
-	m_normals.resize(m_vertices.size());
+	if (m_normals.size() != m_vertices.size())
+	{
+		m_normals.clear();
+		m_normals.resize(m_vertices.size());
+	}
 
 	for (int i = 0; i < m_rowNum; ++i)
 	{
@@ -471,4 +479,40 @@ void Terrain::UpdateMinMaxHeight()
 		if (m_vertices[i] > m_maxHeight) m_maxHeight = m_vertices[i];
 		if (m_vertices[i] < m_minHeight) m_minHeight = m_vertices[i];
 	}
+}
+
+void Terrain::ApplyPerlinNoise()
+{
+	ClearVertexData();
+	CreateTerrain();
+
+	float sliceW = (float) m_width / (float)(m_rowNum - 1);
+	float sliceH = (float) m_height / (float)(m_colNum - 1);
+
+	size_t nr_vert = m_vertices.size();
+	double z = RNG::getFloat();
+	int index = 0;
+
+	for (int i = 0; i < nr_vert; i += 3)
+	{
+		int ii = index / m_colNum;
+		int jj = index % m_colNum;
+		double x = (double)(3 * ii * sliceW) / (m_width);
+		double y = (double)(3 * jj * sliceH) / (m_height);
+		double pn = PerlinNoise::OctavePerlin(x, y, z, 5, 0.5);
+		double n = 1000 * pn;
+		//n = n - floor(n);
+		
+		// Map the values to the [0, 255] interval, for simplicity we use 
+		// tones of grey
+		m_vertices[i + 1] = n; //(/*255 * */n);
+
+		++index;
+	}
+
+	// (int i = 0; i <= 2; ++i)
+	//	SmoothTerrain(3);
+
+	UpdateMinMaxHeight();
+	GenerateNormals();
 }
