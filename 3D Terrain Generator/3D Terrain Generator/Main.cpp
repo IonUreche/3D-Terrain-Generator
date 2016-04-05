@@ -11,7 +11,23 @@
 
 #include "Texture.h"
 
+#include <glui.h>
+#include <sstream>
+
 using namespace std;
+
+int main_window;
+int obj = 0;
+
+GLUI *glui;
+GLUI_EditText   *edittext;
+GLUI_RadioGroup *radio;
+
+GLUI_String s_octaves, s_persistence, s_coordMultFactor, s_noiseMultFactor;
+
+bool ApplyPerlinNoiseNextFrame = false;
+int g_octaves;
+double g_persistence, g_coordsMultFactor, g_noiseMultFactor;
 
 GLuint
 ProgramId, VertexShaderId, FragmentShaderId,
@@ -243,12 +259,20 @@ bool Initialize()
 
 void RenderFunction(void)
 {
+	glutSetWindow(main_window);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_CULL_FACE);
 
 	skybox.Draw(camera.view, camera.projection);
+
+	if (ApplyPerlinNoiseNextFrame)
+	{
+		ter->ApplyPerlinNoise(g_octaves, g_persistence, g_coordsMultFactor, g_noiseMultFactor);
+		ApplyPerlinNoiseNextFrame = false;
+	}
 	
 	if (isWireFrame)
 	{
@@ -303,13 +327,23 @@ void MousePassiveMotionFunction(int x, int y)
 	camera.mouse_position = glm::vec3(x, y, 0);
 }
 
+void GenerateButtonCallbackFunction()
+{
+	stringstream ss;
+	ss << s_octaves << ' ' << s_persistence << ' ' << s_coordMultFactor << ' ' << s_noiseMultFactor;
+	ss.seekg(0, ios_base::beg);
+
+	ss >> g_octaves >> g_persistence >> g_coordsMultFactor >> g_noiseMultFactor;
+	ApplyPerlinNoiseNextFrame = true;
+}
+
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
 	glutInitWindowPosition(250, 50);
 	glutInitWindowSize(1080, 720);
-	glutCreateWindow("OpenGL 3D Terrain Generator");
+	main_window = glutCreateWindow("OpenGL 3D Terrain Generator");
 	glewInit();
 	if (!Initialize())
 	{
@@ -317,12 +351,45 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	glutDisplayFunc(RenderFunction);
-	glutIdleFunc(RenderFunction);
+	//glutIdleFunc(RenderFunction);
 	glutKeyboardFunc(processNormalKeys);
 	glutSpecialFunc(processSpecialKeys);
 	glutCloseFunc(Cleanup);
 	glutMotionFunc(MouseMotionFunction);
 	glutPassiveMotionFunc(MousePassiveMotionFunction);
+
+	// GLUI
+	glui = GLUI_Master.create_glui("GLUI", 0, 400, 50); 
+
+	GLUI_Master.set_glutIdleFunc(RenderFunction);
+	
+	glui->add_statictext("Perlin Noise parameters:"); 
+	
+	glui->add_edittext("octaves", s_octaves);
+	glui->add_edittext("persistence", s_persistence);
+	glui->add_edittext("coords Mult. factor", s_coordMultFactor);
+	glui->add_edittext("noise Mult. factor", s_noiseMultFactor);
+	glui->add_button("Generate", 0, (GLUI_Update_CB) GenerateButtonCallbackFunction);
+	
+	//new GLUI_Separator(glui);
+	//checkbox = new GLUI_Checkbox(glui, "Wireframe", &wireframe, 1, control_cb);
+	//spinner = new GLUI_Spinner(glui, "Segments:", &segments, 2, control_cb);
+	//spinner->set_int_limits(3, 60);
+	/*
+	edittext = new GLUI_EditText(glui, "Text:", "sample...");
+	GLUI_Panel *obj_panel = new GLUI_Panel(glui, "Object Type");
+	radio = new GLUI_RadioGroup(obj_panel, &obj, 4);
+	new GLUI_RadioButton(radio, "Sphere");
+	new GLUI_RadioButton(radio, "Torus");
+	new GLUI_RadioButton(radio, "Teapot");
+	new GLUI_Button(glui, "Quit", 0, (GLUI_Update_CB)exit);
+*/
+	//glui->set_main_gfx_window(main_window);
+
+	/* We register the idle callback with GLUI, *not* with GLUT */
+	//GLUI_Master.set_glutIdleFunc( myGlutIdle );
+	//GLUI_Master.set_glutIdleFunc(NULL);
+
 	glutMainLoop();
 
 	getchar();

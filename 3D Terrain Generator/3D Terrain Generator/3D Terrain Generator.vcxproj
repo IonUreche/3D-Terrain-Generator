@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SOIL\src;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Dist\x32;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SOIL\lib;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Dist\x32;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\glui-2.36;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\glui-2.36\include\GL;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SOIL\src;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Dist\x32;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\glui-2.36\lib;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SOIL\lib;E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Dist\x32;C:\Program Files %28x86%29\Microsoft SDKs\Windows\v7.1A\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -57,7 +57,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>freeglut.lib;glew32.lib;FreeImage.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glui32d.lib;freeglut.lib;glew32.lib;FreeImage.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

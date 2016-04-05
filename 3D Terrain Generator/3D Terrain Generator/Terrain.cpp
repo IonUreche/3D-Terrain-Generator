@@ -481,7 +481,7 @@ void Terrain::UpdateMinMaxHeight()
 	}
 }
 
-void Terrain::ApplyPerlinNoise()
+void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMultFactor, double noiseMultFactor)
 {
 	ClearVertexData();
 	CreateTerrain();
@@ -497,15 +497,12 @@ void Terrain::ApplyPerlinNoise()
 	{
 		int ii = index / m_colNum;
 		int jj = index % m_colNum;
-		double x = (double)(3 * ii * sliceW) / (m_width);
-		double y = (double)(3 * jj * sliceH) / (m_height);
-		double pn = PerlinNoise::OctavePerlin(x, y, z, 5, 0.5);
-		double n = 1000 * pn;
-		//n = n - floor(n);
-		
-		// Map the values to the [0, 255] interval, for simplicity we use 
-		// tones of grey
-		m_vertices[i + 1] = n; //(/*255 * */n);
+		double x = (double)(coordsMultFactor * ii * sliceW) / (m_width);
+		double y = (double)(coordsMultFactor * jj * sliceH) / (m_height);
+		double pn = PerlinNoise::OctavePerlin(x, y, z, octaves, persistence);
+		double n = noiseMultFactor * pn;
+
+		m_vertices[i + 1] = n;
 
 		++index;
 	}
