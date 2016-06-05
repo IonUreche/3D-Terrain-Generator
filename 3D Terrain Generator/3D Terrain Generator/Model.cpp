@@ -36,10 +36,10 @@ void Model::CreateVBO()
 {
 	//
 	glBindBuffer(GL_ARRAY_BUFFER, VerticesBufferId);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(double)* m_vertices.size(), &m_vertices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 0, 0);
 
 	//
 	glBindBuffer(GL_ARRAY_BUFFER, ColorsBufferId);

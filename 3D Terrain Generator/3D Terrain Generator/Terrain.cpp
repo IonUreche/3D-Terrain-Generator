@@ -35,7 +35,7 @@ void Terrain::GenerateVertices()
 	for (int i = 0; i < m_rowNum; ++i)
 		for (int j = 0; j < m_colNum; ++j)
 		{
-			m_vertices.push_back(pos_x + j * sliceW);
+			m_vertices.push_back(pos_x + j * sliceW); 
 			m_vertices.push_back(m_pos.y);
 			m_vertices.push_back(pos_z + i * sliceH);
 			
@@ -89,11 +89,12 @@ void Terrain::GenerateIndexes()
 			m_indices.push_back(m_colNum * i + j);
 			m_indices.push_back((i + 1) * m_colNum + j);
 		}
-		//m_indices.push_back(m_rowNum * m_colNum);
-		//m_indices.push_back(m_rowNum * m_colNum);
-		m_indices.push_back((i + 1) * m_colNum + m_colNum - 1);
+
 		if (i != m_rowNum - 2)
+		{
+			m_indices.push_back((i + 1) * m_colNum + m_colNum - 1);
 			m_indices.push_back((i + 1) * m_colNum);
+		}
 	}
 }
 
@@ -254,9 +255,70 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 		rngHighRange *= rngDivisionValue;
 	}
 
-	 for(int i = 0; i <= 1; ++i)
-		SmoothTerrain(3);
+	 //for(int i = 0; i <= 1; ++i)
+	//	SmoothTerrain(3);
 
+	UpdateMinMaxHeight();
+	GenerateNormals();
+}
+
+void Terrain::GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSizeInPowerOfTwo, double roughness, double heightScaleValue, int numberOfSmoothingIterations)
+{
+	ClearVertexData();
+	int TerrSize = 1 << terrainGridSizeInPowerOfTwo;
+	SetGridSize(TerrSize + 2, TerrSize + 2);
+	SetSize(terrainSize, terrainSize);
+	CreateTerrain();
+
+	double rought = roughness;
+
+	// Set the height of initial four corners
+	SetGridPointCoord(0, 0, 1, RNG::getDouble(-rought, rought));
+	SetGridPointCoord(0, TerrSize, 1, RNG::getDouble(-rought, rought));
+	SetGridPointCoord(TerrSize, 0, 1, RNG::getDouble(-rought, rought));
+	SetGridPointCoord(TerrSize, TerrSize, 1, RNG::getDouble(-rought, rought));
+
+	int lim = TerrSize + 1;
+	double g1, g2, g3, g4, perturbation;
+
+	for (int len = terrainGridSizeInPowerOfTwo; len > 0; --len)
+	{
+		int PL2 = 1 << len;
+		int PL_D2 = 1 << (len - 1);
+		float averageHeight = 0.0f;
+
+		for (int i = 0; i < lim; i += PL2)
+		{
+			for (int j = 0; j < lim; j += PL2)
+			{
+				// Take The Average of Corner points
+				averageHeight = 0.0f;
+				g1 = GetGridPointCoord(i, j, 1);
+				g2 = GetGridPointCoord(i + PL_D2, j, 1);
+				g3 = GetGridPointCoord(i, j + PL_D2, 1);
+				g4 = GetGridPointCoord(i + PL_D2, j + PL_D2, 1);
+				averageHeight = (g1 + g2 + g3 + g4) / 4.0f;
+				perturbation = RNG::getDouble(-rought, rought);
+				averageHeight += perturbation;
+				// Add random value to averageHeight and set the midpoint height
+				SetGridPointCoord(i + PL_D2, j + PL_D2, 1, averageHeight);
+
+				// Diamond Step
+				SetGridPointCoord(i + PL_D2, j, 1, GetDiamondAverage(i + PL_D2, j, PL_D2) + RNG::getDouble(-rought, rought));
+				SetGridPointCoord(i, j + PL_D2, 1, GetDiamondAverage(i, j + PL_D2, PL_D2) + RNG::getDouble(-rought, rought));
+
+				SetGridPointCoord(i + PL_D2, j + PL2, 1, GetDiamondAverage(i + PL_D2, j + PL2, PL_D2) + RNG::getDouble(-rought, rought));
+				SetGridPointCoord(i + PL2, j + PL_D2, 1, GetDiamondAverage(i + PL2, j + PL_D2, PL_D2) + RNG::getDouble(-rought, rought));
+			}
+		}
+
+		rought *= roughness;
+	}
+
+	for (int i = 0; i < numberOfSmoothingIterations; ++i)
+		Apply3x3Filter();
+
+	ScaleHeight(heightScaleValue);
 	UpdateMinMaxHeight();
 	GenerateNormals();
 }
@@ -294,6 +356,12 @@ inline bool Terrain::IsValidGridCoord(int row, int col)
 {
 	int tmp = 3 * (row * m_colNum + col);
 	return 0 <= tmp && tmp < (int) m_vertices.size();
+}
+
+void Terrain::ScaleHeight(double scaleValue)
+{
+	for (size_t i = 1; i < m_vertices.size(); i += 3)
+		m_vertices[i] *= scaleValue;
 }
 
 glm::vec3 Terrain::GetGridPointCoordVect(int row, int col)

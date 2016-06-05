@@ -54,7 +54,7 @@ void Sphere::GenerateVertices()
 	m_colors.resize(m_rings * m_sectors * 3);
 	m_normals.resize(m_rings * m_sectors * 3);
 	//m_texcoords.resize(m_rings * m_sectors * 2);
-	std::vector<GLfloat>::iterator v = m_vertices.begin();
+	std::vector<GLdouble>::iterator v = m_vertices.begin();
 	std::vector<GLfloat>::iterator n = m_normals.begin();
 	//std::vector<GLfloat>::iterator t = m_texcoords.begin();
 	std::vector<GLfloat>::iterator c = m_colors.begin();

@@ -19,6 +19,7 @@ public:
 	//void CleanUp();
 	void GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
 		                              float rngLowRange, float rngHighRange, float rngDivisionValue);
+	void GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSizeInPowerOfTwo, double roughness, double heightScaleValue, int numberOfSmoothingIterations = 0);
 
 	void ApplyPerlinNoise(int octaves = 5, double persistence = 0.5, double coordsMultFactor = 3, double noiseMultFactor = 1000);
 
@@ -31,6 +32,8 @@ public:
 
 	void SmoothTerrain(int squareWidth);
 	void Apply3x3Filter();
+
+	void ScaleHeight(double scaleValue);
 
 private:
 

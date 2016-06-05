@@ -24,10 +24,15 @@ GLUI_EditText   *edittext;
 GLUI_RadioGroup *radio;
 
 GLUI_String s_octaves, s_persistence, s_coordMultFactor, s_noiseMultFactor;
+GLUI_String s_heightScaleValue, s_roughness, s_terrainHeight, s_terrainWidth, s_power2Size, s_terrainSize, s_numberOfSmoothingIterations;
 
 bool ApplyPerlinNoiseNextFrame = false;
 int g_octaves;
 double g_persistence, g_coordsMultFactor, g_noiseMultFactor;
+
+int g_power2Size, g_numberOfSmoothingIterations = 0;
+double g_roughness, g_heightScaleValue, g_terrainSize;
+bool ApplyDiamondSquareNextFrame = false;
 
 GLuint
 ProgramId, VertexShaderId, FragmentShaderId,
@@ -43,7 +48,7 @@ Skybox skybox;
 // matrice utilizate
 glm::mat4 model, matrRot;
 
-glm::vec3 Obs = glm::vec3(5.0f, 700.0f, 5.0f);
+glm::vec3 Obs = glm::vec3(-10, 50.0f, -10.0f);
 glm::vec3 RefPct = glm::vec3(20.0f, 0.0f, 20.0f);
 
 int isWireFrame = 0;
@@ -166,6 +171,7 @@ void processSpecialKeys(int key, int xx, int yy) {
 bool Initialize()
 {
 	glEnable(GL_DEPTH_TEST);
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 	model = glm::mat4(1.0f);
 
@@ -190,11 +196,13 @@ bool Initialize()
 	camera.far_clip = zfar;
 	camera.move_camera = true;
 
-	ter = new Terrain(10000, 10000, 250, 250, glm::vec3(0.0, 0.0, 0.0));
+	ter = new Terrain(100, 100, 100, 100, glm::vec3(0.0, 0.0, 0.0));
 	ter->SetShaderProgram(ProgramId);
-	//ter->GenerateDiamondSquareSurface(5000, 8, 0.f, -20.8f, 350.5f, 0.9f);
+	ter->GenerateDiamondSquareSurface2(10, 7, 0.7f, 3.0f);
+	//ter->GenerateDiamondSquareSurface(100, 5, 10, -5, 5, 0.8);
+	
 	//ter->GetGridPointCoordVect(5, 5);
-	ter->ApplyPerlinNoise();
+	//ter->ApplyPerlinNoise();
 	light = new Light(glm::vec3(5.0f, 0.0f, 5.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
 	// Set uniform fragment shader
@@ -218,7 +226,7 @@ bool Initialize()
 
 	cuboid = new Cuboid(glm::vec3(3.0f, 1.0f, 2.0f), 1.0f, 1.0f, 1.0f);
 	cuboid->SetShaderProgram(ProgramId);
-
+	/*
 	vector<glm::vec3> bez;
 	for (int i = 0; i < 4; ++i)
 	{
@@ -228,10 +236,10 @@ bool Initialize()
 		bez.push_back(glm::vec3(10.0f, 0.0f, i * 3.33f));
 	}
 	
-	//ter->SetBezierControlPoints(bez);
-	//ter->GenerateBezierSurface();
-
-	mySphere = new Sphere(glm::vec3(7.0f, 2.0f, 7.0f), 1.5f, 30, 30);
+	ter->SetBezierControlPoints(bez);
+	ter->GenerateBezierSurface();
+	*/
+	mySphere = new Sphere(glm::vec3(-2.0f, 0.0f, -2.0f), 1.5f, 30, 30);
 	mySphere->SetShaderProgram(ProgramId);
 
 	grassSamplerLoc = glGetUniformLocation(ProgramId, "tGrass");
@@ -266,12 +274,17 @@ void RenderFunction(void)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_CULL_FACE);
 
-	skybox.Draw(camera.view, camera.projection);
+	// skybox.Draw(camera.view, camera.projection);
 
 	if (ApplyPerlinNoiseNextFrame)
 	{
 		ter->ApplyPerlinNoise(g_octaves, g_persistence, g_coordsMultFactor, g_noiseMultFactor);
 		ApplyPerlinNoiseNextFrame = false;
+	}
+	if (ApplyDiamondSquareNextFrame)
+	{
+		ter->GenerateDiamondSquareSurface2(g_terrainSize, g_power2Size, g_roughness, g_heightScaleValue, g_numberOfSmoothingIterations);
+		ApplyDiamondSquareNextFrame = false;
 	}
 	
 	if (isWireFrame)
@@ -305,6 +318,7 @@ void RenderFunction(void)
 	tRock.bindTexture(2);
 	tSnow.bindTexture(3);
 	
+	//mySphere->Draw();
 	ter->Draw(camera.view, camera.projection);
 
 	camera.Update();
@@ -327,14 +341,24 @@ void MousePassiveMotionFunction(int x, int y)
 	camera.mouse_position = glm::vec3(x, y, 0);
 }
 
-void GenerateButtonCallbackFunction()
+void GenerateButtonCallbackFunctionF1()
 {
 	stringstream ss;
+
 	ss << s_octaves << ' ' << s_persistence << ' ' << s_coordMultFactor << ' ' << s_noiseMultFactor;
 	ss.seekg(0, ios_base::beg);
-
 	ss >> g_octaves >> g_persistence >> g_coordsMultFactor >> g_noiseMultFactor;
 	ApplyPerlinNoiseNextFrame = true;
+}
+
+void GenerateButtonCallbackFunctionF2()
+{
+	stringstream ss;
+
+	ss << s_terrainSize << ' ' << s_power2Size << ' ' << s_roughness << ' ' << s_heightScaleValue << ' ' << s_numberOfSmoothingIterations;
+	ss.seekg(0, ios_base::beg);
+	ss >> g_terrainSize >> g_power2Size >> g_roughness >> g_heightScaleValue >> g_numberOfSmoothingIterations;
+	ApplyDiamondSquareNextFrame = true;
 }
 
 int main(int argc, char* argv[])
@@ -359,17 +383,30 @@ int main(int argc, char* argv[])
 	glutPassiveMotionFunc(MousePassiveMotionFunction);
 
 	// GLUI
-	glui = GLUI_Master.create_glui("GLUI", 0, 400, 50); 
+	glui = GLUI_Master.create_glui("GLUI", 0, 100, 50); 
 
 	GLUI_Master.set_glutIdleFunc(RenderFunction);
-	
+
+	glui->add_statictext("Terrain Parameters");
+	glui->add_edittext("Terrain Width", s_terrainWidth);
+	glui->add_edittext("Terrain Height", s_terrainHeight);
+
 	glui->add_statictext("Perlin Noise parameters:"); 
 	
 	glui->add_edittext("octaves", s_octaves);
 	glui->add_edittext("persistence", s_persistence);
 	glui->add_edittext("coords Mult. factor", s_coordMultFactor);
 	glui->add_edittext("noise Mult. factor", s_noiseMultFactor);
-	glui->add_button("Generate", 0, (GLUI_Update_CB) GenerateButtonCallbackFunction);
+	glui->add_button("Generate", 0, (GLUI_Update_CB) GenerateButtonCallbackFunctionF1);
+
+	glui->add_statictext("Diamond-Square parameters:");
+
+	glui->add_edittext("Terrain Size", s_terrainSize);
+	glui->add_edittext("Size In Power Of Two", s_power2Size);
+	glui->add_edittext("roughness", s_roughness);
+	glui->add_edittext("Height scale value", s_heightScaleValue);
+	glui->add_edittext("Number of Smoothing Iterations", s_numberOfSmoothingIterations);
+	glui->add_button("Generate", 0, (GLUI_Update_CB)GenerateButtonCallbackFunctionF2);
 	
 	//new GLUI_Separator(glui);
 	//checkbox = new GLUI_Checkbox(glui, "Wireframe", &wireframe, 1, control_cb);

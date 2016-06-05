@@ -47,7 +47,7 @@ protected:
 	glm::vec3 m_rotationAngles;
 	glm::vec3 m_translationVector;
 
-	std::vector<GLfloat> m_vertices;
+	std::vector<GLdouble> m_vertices;
 	std::vector<GLfloat> m_normals;
 	std::vector<GLfloat> m_texcoords;
 	std::vector<GLfloat> m_colors;

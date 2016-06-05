@@ -2,6 +2,12 @@
 
 #include "RNG.h"
 
+double RNG::getDouble(double a, double b)
+{
+	std::uniform_real_distribution<double> dist(a, b);
+	return dist(m_generator);
+}
+
 float RNG::getFloat(float a, float b)
 {
 	std::uniform_real_distribution<float> dist(a, b);
