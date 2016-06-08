@@ -5,17 +5,17 @@
 void PerlinNoise::init(unsigned int seed)
 {
 	// Fill p with values from 0 to 255
-	std::iota(permutation, permutation + 256, 0);
+	std::iota(perm, perm + 256, 0);
 	
 	// Initialize a random engine with seed
 	std::default_random_engine engine(seed);
 	
 	// Suffle  using the above random engine
-	std::shuffle(permutation, permutation + 256, engine);
+	std::shuffle(perm, perm + 256, engine);
 
-	// Duplicate the permutation vector
+	// Duplicate the perm vector
 	for (int i = 0; i < 256; ++i)
-		p[i + 256] = p[i] = permutation[i];
+		p[i + 256] = p[i] = perm[i];
 }
 
 double PerlinNoise::noise(double x, double y, double z) {
@@ -40,7 +40,17 @@ double PerlinNoise::noise(double x, double y, double z) {
 			w = fade(z);
 		int A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z,      // HASH COORDINATES OF
 			B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z;      // THE 8 CUBE CORNERS,
+		/*
+		double l1 = lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z));
+		double l2 = lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z));
+		double y1 = lerp(v, l1, l2);
 
+		l1 = lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1));
+		l2 = lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1));
+		double y2 = lerp(v, l1, l2);
+		
+		return lerp(w, y1, y2);
+		*/
 		return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z),  // AND ADD
 			grad(p[BA], x - 1, y, z)), // BLENDED
 			lerp(u, grad(p[AB], x, y - 1, z),  // RESULTS
@@ -49,6 +59,7 @@ double PerlinNoise::noise(double x, double y, double z) {
 			grad(p[BA + 1], x - 1, y, z - 1)), // OF CUBE
 			lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
 			grad(p[BB + 1], x - 1, y - 1, z - 1))));
+		
 	}
 
 double PerlinNoise::fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
@@ -66,7 +77,7 @@ double PerlinNoise::OctavePerlin(double x, double y, double z, int octaves, doub
 	double amplitude = 1;
 	double maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
 	for (int i = 0; i<octaves; i++) {
-		total += (1 - abs(noise(x * frequency, y * frequency, z * frequency))) * amplitude;
+		total += /*(1 - abs(*/noise(x * frequency, y * frequency, z * frequency)/*))*/ * amplitude;
 
 		maxValue += amplitude;
 
@@ -77,9 +88,103 @@ double PerlinNoise::OctavePerlin(double x, double y, double z, int octaves, doub
 	return total;// maxValue;
 }
 
+int PerlinNoise::fastfloor(double x) {
+	return x>0 ? (int)x : (int)x - 1;
+}
+
+double PerlinNoise::dot(int g[], double x, double y, double z) {
+	return g[0] * x + g[1] * y + g[2] * z;
+}
+
+double PerlinNoise::dot(int g[], double x, double y) {
+	return g[0] * x + g[1] * y;
+}
+
+double PerlinNoise::mix(double a, double b, double t) {
+	return (1 - t)*a + t*b;
+}
+
+// 2D simplex noise
+double PerlinNoise::noise2D(double xin, double yin)
+{
+	if (!initialized)
+	{
+		initialized = true;
+		auto now = std::chrono::system_clock::now();
+		auto duration = now.time_since_epoch();
+		auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+		init((unsigned int)millis % INT_MAX);
+	}
+
+	double n0, n1, n2;
+	// Noise contributions from the three corners
+	// Skew the input space to determine which simplex cell we're in
+	double F2 = 0.5*(sqrt(3.0) - 1.0);
+	double s = (xin + yin)*F2;
+	// Hairy factor for 2D
+	int i = fastfloor(xin + s);
+	int j = fastfloor(yin + s);
+	double G2 = (3.0 - sqrt(3.0)) / 6.0;
+	double t = (i + j)*G2;
+	double X0 = i - t;
+	// Unskew the cell origin back to (x,y) space
+	double Y0 = j - t;
+	double x0 = xin - X0;
+	// The x,y distances from the cell origin
+	double y0 = yin - Y0;
+	// For the 2D case, the simplex shape is an equilateral triangle.
+	// Determine which simplex we are in.
+	int i1, j1;
+	// Offsets for second (middle) corner of simplex in (i,j) coords
+	if (x0>y0) { i1 = 1; j1 = 0; }
+	// lower triangle, XY order: (0,0)->(1,0)->(1,1)
+	else { i1 = 0; j1 = 1; }
+	// upper triangle, YX order: (0,0)->(0,1)->(1,1)
+	// A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
+	// a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+	// c = (3-sqrt(3))/6
+	double x1 = x0 - i1 + G2;
+	// Offsets for middle corner in (x,y) unskewed coords
+	double y1 = y0 - j1 + G2;
+	double x2 = x0 - 1.0 + 2.0 * G2;
+	// Offsets for last corner in (x,y) unskewed coords
+	double y2 = y0 - 1.0 + 2.0 * G2;
+	// Work out the hashed gradient indices of the three simplex corners
+	int ii = i & 255;
+	int jj = j & 255;
+	int gi0 = perm[ii + perm[jj]] % 12;
+	int gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
+	int gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
+	// Calculate the contribution from the three corners
+	double t0 = 0.5 - x0*x0 - y0*y0;
+	if (t0<0) n0 = 0.0;
+	else {
+		t0 *= t0;
+		n0 = t0 * t0 * dot(grad3[gi0], x0, y0);
+		// (x,y) of grad3 used for 2D gradient
+	}
+	double t1 = 0.5 - x1*x1 - y1*y1;
+	if (t1<0) n1 = 0.0;
+	else {
+		t1 *= t1;
+		n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
+	}
+
+	double t2 = 0.5 - x2*x2 - y2*y2;
+	if (t2<0) n2 = 0.0;
+	else {
+		t2 *= t2;
+		n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
+	}
+	// Add contributions from each corner to get the final noise value.
+	// The result is scaled to return values in the interval [-1,1].
+	//std::cout << (70.0 * (n0 + n1 + n2)) << '\n';
+	return 70.0 * (n0 + n1 + n2);
+}
+
 bool PerlinNoise::initialized = false;
 int PerlinNoise::p[512];
-int PerlinNoise::permutation[256] = { 151, 160, 137, 91, 90, 15,
+int PerlinNoise::perm[256] = { 151, 160, 137, 91, 90, 15,
 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33,
 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166,
@@ -93,3 +198,6 @@ int PerlinNoise::permutation[256] = { 151, 160, 137, 91, 90, 15,
 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254,
 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
 };
+int PerlinNoise::grad3[12][3] = { { 1, 1, 0 }, { -1, 1, 0 }, { 1, -1, 0 }, { -1, -1, 0 },
+{ 1, 0, 1 }, { -1, 0, 1 }, { 1, 0, -1 }, { -1, 0, -1 },
+{ 0, 1, 1 }, { 0, -1, 1 }, { 0, 1, -1 }, { 0, -1, -1 } };

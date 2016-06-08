@@ -23,16 +23,21 @@ GLUI *glui;
 GLUI_EditText   *edittext;
 GLUI_RadioGroup *radio;
 
-GLUI_String s_octaves, s_persistence, s_coordMultFactor, s_noiseMultFactor;
-GLUI_String s_heightScaleValue, s_roughness, s_terrainHeight, s_terrainWidth, s_power2Size, s_terrainSize, s_numberOfSmoothingIterations;
+GLUI_String s_terrainWidth, s_terrainHeight, s_octaves, s_persistence, s_coordMultFactor, s_noiseMultFactor;
+GLUI_String s_heightScaleValue, s_roughness, s_power2Size, s_terrainSize, s_numberOfSmoothingIterations;
+GLUI_String s_perlinAnimationSpeed;
+int g_AnimationIsRunning;
 
 bool ApplyPerlinNoiseNextFrame = false;
 int g_octaves;
-double g_persistence, g_coordsMultFactor, g_noiseMultFactor;
+double g_persistence, g_coordsMultFactor, g_noiseMultFactor, g_terrainWidth, g_terrainHeight, g_perlinAnimationSpeed;
 
 int g_power2Size, g_numberOfSmoothingIterations = 0;
 double g_roughness, g_heightScaleValue, g_terrainSize;
 bool ApplyDiamondSquareNextFrame = false;
+
+bool StartAnimatingPerlin = false;
+double PerlinTime = 0.0;
 
 GLuint
 ProgramId, VertexShaderId, FragmentShaderId,
@@ -249,10 +254,10 @@ bool Initialize()
 	glUniform1i(rockSamplerLoc, 2);
 	glUniform1i(snowSamplerLoc, 3);
 
-	tGrass.loadTexture2D("data\\textures\\grass.jpg", true);
+	tGrass.loadTexture2D("data\\textures\\moon-texture.jpg", true);
 	tGrass.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
 
-	tRock.loadTexture2D("data\\textures\\rock.png", true);
+	tRock.loadTexture2D("data\\textures\\Asteroid-texture.png", true);
 	tRock.setFiltering(TEXTURE_FILTER_MAG_BILINEAR, TEXTURE_FILTER_MIN_BILINEAR_MIPMAP);
 
 	tSnow.loadTexture2D("data\\textures\\snow.jpg", true);
@@ -276,10 +281,19 @@ void RenderFunction(void)
 
 	// skybox.Draw(camera.view, camera.projection);
 
-	if (ApplyPerlinNoiseNextFrame)
+	if (ApplyPerlinNoiseNextFrame || (StartAnimatingPerlin && g_AnimationIsRunning))
 	{
-		ter->ApplyPerlinNoise(g_octaves, g_persistence, g_coordsMultFactor, g_noiseMultFactor);
 		ApplyPerlinNoiseNextFrame = false;
+		if (!StartAnimatingPerlin)
+		{
+			StartAnimatingPerlin = true;
+			PerlinTime = 0;
+			ter->SetSize(g_terrainWidth, g_terrainHeight);
+			ter->SetGridSize(g_terrainWidth, g_terrainHeight);
+		}
+		
+		PerlinTime += g_perlinAnimationSpeed;
+		ter->ApplyPerlinNoise(g_octaves, g_persistence, g_coordsMultFactor, g_noiseMultFactor, PerlinTime);
 	}
 	if (ApplyDiamondSquareNextFrame)
 	{
@@ -345,10 +359,11 @@ void GenerateButtonCallbackFunctionF1()
 {
 	stringstream ss;
 
-	ss << s_octaves << ' ' << s_persistence << ' ' << s_coordMultFactor << ' ' << s_noiseMultFactor;
+	ss << s_terrainWidth << ' ' << s_terrainHeight << ' ' << s_octaves << ' ' << s_persistence << ' ' << s_coordMultFactor << ' ' << s_noiseMultFactor << ' ' << s_perlinAnimationSpeed;
 	ss.seekg(0, ios_base::beg);
-	ss >> g_octaves >> g_persistence >> g_coordsMultFactor >> g_noiseMultFactor;
+	ss >> g_terrainWidth >> g_terrainHeight >> g_octaves >> g_persistence >> g_coordsMultFactor >> g_noiseMultFactor >> g_perlinAnimationSpeed;
 	ApplyPerlinNoiseNextFrame = true;
+	cout << g_AnimationIsRunning << '\n';
 }
 
 void GenerateButtonCallbackFunctionF2()
@@ -383,7 +398,7 @@ int main(int argc, char* argv[])
 	glutPassiveMotionFunc(MousePassiveMotionFunction);
 
 	// GLUI
-	glui = GLUI_Master.create_glui("GLUI", 0, 100, 50); 
+	glui = GLUI_Master.create_glui("GLUI", 0, 0, 0); 
 
 	GLUI_Master.set_glutIdleFunc(RenderFunction);
 
@@ -397,8 +412,10 @@ int main(int argc, char* argv[])
 	glui->add_edittext("persistence", s_persistence);
 	glui->add_edittext("coords Mult. factor", s_coordMultFactor);
 	glui->add_edittext("noise Mult. factor", s_noiseMultFactor);
+	glui->add_edittext("Perlin Animation Speed", s_perlinAnimationSpeed);
+	glui->add_checkbox("Animation", &g_AnimationIsRunning);
 	glui->add_button("Generate", 0, (GLUI_Update_CB) GenerateButtonCallbackFunctionF1);
-
+	
 	glui->add_statictext("Diamond-Square parameters:");
 
 	glui->add_edittext("Terrain Size", s_terrainSize);

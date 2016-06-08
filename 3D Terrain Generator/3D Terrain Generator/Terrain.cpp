@@ -25,6 +25,7 @@ void Terrain::GenerateVertices()
 	float sliceH = (float)m_height / (float)(m_colNum - 1);
 
 	m_vertices.clear();
+	m_texcoords.clear();
 
 	int k = 5;
 	float pos_x = m_centerPos.x - m_width / 2;
@@ -266,7 +267,7 @@ void Terrain::GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSize
 {
 	ClearVertexData();
 	int TerrSize = 1 << terrainGridSizeInPowerOfTwo;
-	SetGridSize(TerrSize + 2, TerrSize + 2);
+	SetGridSize(TerrSize + 1, TerrSize + 1);
 	SetSize(terrainSize, terrainSize);
 	CreateTerrain();
 
@@ -291,22 +292,27 @@ void Terrain::GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSize
 		{
 			for (int j = 0; j < lim; j += PL2)
 			{
-				// Take The Average of Corner points
+				// Square Step - Take The Average of Corner points
 				averageHeight = 0.0f;
 				g1 = GetGridPointCoord(i, j, 1);
-				g2 = GetGridPointCoord(i + PL_D2, j, 1);
-				g3 = GetGridPointCoord(i, j + PL_D2, 1);
-				g4 = GetGridPointCoord(i + PL_D2, j + PL_D2, 1);
+				g2 = GetGridPointCoord(i + PL2, j, 1);
+				g3 = GetGridPointCoord(i, j + PL2, 1);
+				g4 = GetGridPointCoord(i + PL2, j + PL2, 1);
 				averageHeight = (g1 + g2 + g3 + g4) / 4.0f;
 				perturbation = RNG::getDouble(-rought, rought);
 				averageHeight += perturbation;
 				// Add random value to averageHeight and set the midpoint height
 				SetGridPointCoord(i + PL_D2, j + PL_D2, 1, averageHeight);
+			}
+		}
 
+		for (int i = 0; i < lim; i += PL2)
+		{
+			for (int j = 0; j < lim; j += PL2)
+			{
 				// Diamond Step
 				SetGridPointCoord(i + PL_D2, j, 1, GetDiamondAverage(i + PL_D2, j, PL_D2) + RNG::getDouble(-rought, rought));
 				SetGridPointCoord(i, j + PL_D2, 1, GetDiamondAverage(i, j + PL_D2, PL_D2) + RNG::getDouble(-rought, rought));
-
 				SetGridPointCoord(i + PL_D2, j + PL2, 1, GetDiamondAverage(i + PL_D2, j + PL2, PL_D2) + RNG::getDouble(-rought, rought));
 				SetGridPointCoord(i + PL2, j + PL_D2, 1, GetDiamondAverage(i + PL2, j + PL_D2, PL_D2) + RNG::getDouble(-rought, rought));
 			}
@@ -549,7 +555,7 @@ void Terrain::UpdateMinMaxHeight()
 	}
 }
 
-void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMultFactor, double noiseMultFactor)
+void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMultFactor, double noiseMultFactor, double z)
 {
 	ClearVertexData();
 	CreateTerrain();
@@ -558,7 +564,8 @@ void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMul
 	float sliceH = (float) m_height / (float)(m_colNum - 1);
 
 	size_t nr_vert = m_vertices.size();
-	double z = RNG::getFloat();
+	//double 
+	//z = RNG::getFloat();
 	int index = 0;
 
 	for (int i = 0; i < nr_vert; i += 3)
