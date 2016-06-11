@@ -31,7 +31,8 @@ public:
 	void SetGridPointCoord(int row, int col, int coordIndex, float value);
 
 	void SmoothTerrain(int squareWidth);
-	void Apply3x3Filter();
+	void Apply3x3Filter(int type = 0);
+	void ExportAsImage(string imgFileName);
 
 	void ScaleHeight(double scaleValue);
 

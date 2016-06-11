@@ -3,6 +3,7 @@
 #include "Terrain.h"
 #include "RNG.h"
 #include "PerlinNoise.h"
+#include <Image.hpp>
 
 Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 center_pos)
 {
@@ -437,19 +438,42 @@ void Terrain::SmoothTerrain(int squareWidth)
 	GenerateNormals();
 }
 
-void Terrain::Apply3x3Filter()
+void Terrain::Apply3x3Filter(int type)
 {
 	vector<GLfloat> m_newYCoords;
 	
-	float f[3][3] = { { 0.0625, 0.125, 0.0625 },
-					{ 0.125, 0.250, 0.125 },
-					{ 0.0625, 0.125, 0.0625 } };
+	float f[3][3];
 	
-	/*
-	float f[3][3] = {   { -0.5, -1.0, -0.5 },
-						{ 0.0, 0.0, 0.0 },
-						{ 0.5, 1.0, 0.5 } };
-	*/
+	if (type == 0)
+	{
+		f[0][0] = 0.0625; f[0][1] = 0.125; f[0][2] = 0.0625;
+		f[1][0] = 0.125; f[1][1] = 0.250; f[1][2] = 0.125;
+		f[2][0] = 0.0625; f[2][1] = 0.125; f[2][2] = 0.0625;
+	}
+	else
+	if (type == 1)
+	{
+		f[0][0] = 1; f[0][1] = 0; f[0][2] = -1;
+		f[1][0] = 0; f[1][1] = 1; f[1][2] = 0;
+		f[2][0] = -1; f[2][1] = 0; f[2][2] = 1;
+	}
+	else if (type == 2)
+	{
+		f[0][0] = 0; f[0][1] = 1; f[0][2] = 0;
+		f[1][0] = 1; f[1][1] = -3; f[1][2] = 1;
+		f[2][0] = 0; f[2][1] = 1; f[2][2] = 0;
+	}
+	else if (type == 3)
+	{
+		f[0][0] = -1; f[0][1] = -1; f[0][2] = -1;
+		f[1][0] = -1; f[1][1] = 9; f[1][2] = -1;
+		f[2][0] = -1; f[2][1] = -1; f[2][2] = -1;
+	}
+	else
+	{
+		for (int i = 0; i < 9; ++i) f[i / 3][i % 3] = 0;
+	}
+	
 	for (int i = 0; i < m_rowNum; ++i)
 	for (int j = 0; j < m_colNum; ++j)
 	{
@@ -588,3 +612,41 @@ void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMul
 	UpdateMinMaxHeight();
 	GenerateNormals();
 }
+
+void Terrain::ExportAsImage(string imgFileName)
+{
+	sf::Image image;
+	image.create(m_rowNum, m_colNum);
+	
+	int index = 1; 
+	double val, diff = (m_maxHeight - m_minHeight);
+	double alpha;
+	
+	for (int i = 0; i < m_rowNum; ++i)
+	for (int j = 0; j < m_colNum; ++j)
+	{
+		sf::Color color;
+		alpha = ((m_vertices[index] - m_minHeight) / diff);
+		color.r = (int)(alpha * 255);
+		color.g = (alpha > 0.5f) ? (int) ((2 - 2 * alpha) * 255) : (int) (255 * (2 * alpha));
+		color.b = (int)((1 - alpha) * 255);
+		image.setPixel(i, j, color);
+		index += 3;
+	}
+	
+	// Save the image to a file
+	if (!image.saveToFile(imgFileName + ".png"))
+	{
+		cout << "Error saving " + imgFileName + ".png\n";
+	}
+}
+
+
+/*
+float alpha = (fragVert.y - minHeight) / (maxHeight - minHeight);
+float red = alpha;
+float green = 2 * alpha; // 2 * (1 - alpha)
+if(alpha > 0.5f) green = 2 - green;
+float blue = (1 - alpha);
+out_Color = vec4(red, green, blue, 1.0);
+*/

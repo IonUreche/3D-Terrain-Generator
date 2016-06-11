@@ -147,7 +147,19 @@ void processNormalKeys(unsigned char key, int x, int y)
 		ter->SmoothTerrain(3);
 		break;
 	case '6':
-		ter->Apply3x3Filter();
+		ter->Apply3x3Filter(0);
+		break;
+	case '7':
+		ter->Apply3x3Filter(1);
+		break;
+	case '8':
+		ter->Apply3x3Filter(2);
+		break;
+	case '9':
+		ter->Apply3x3Filter(3);
+		break;
+	case '0':
+		ter->ExportAsImage("test_heightmap");
 		break;
 	}
 
