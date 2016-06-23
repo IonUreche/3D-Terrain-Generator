@@ -51,12 +51,31 @@ void main(void)
 	
 	if(texturing_enabled == 0)
 	{
-		float alpha = (fragVert.y - minHeight) / (maxHeight - minHeight);
-		float red = alpha;
-		float green = 2 * alpha; // 2 * (1 - alpha)
-		if(alpha > 0.5f) green = 2 - green;
-		float blue = (1 - alpha);
-		out_Color = vec4(red, green, blue, 1.0);
+		float x = (fragVert.y - minHeight) / (maxHeight - minHeight);
+		float r;// = x;
+		float g;// = 2 * x;
+		//if(x > 0.5f) g = 2 - g;
+		float b;// = (1 - x);
+
+		if (x < 0.1) b = 0.5 + 5 * x; else
+		if (x < 0.35) b = 1; else
+		if (x < 0.6) b = 1 - 4 * (x - 0.35); 
+		else b = 0;
+
+		if (x < 0.1) g = 0; else
+		if (x < 0.35) g = (x - 0.1) * 4; else
+		if (x < 0.6) g = 1; else
+		if (x < 0.85) g = 1 - (x - 0.6) * 4; 
+		else g = 0;
+
+		if (x < 0.35) r = 0; else
+		if (x < 0.6) r = (x - 0.35) * 4; else
+		if (x < 0.85) r = 1;
+		else r = 1 - (x - 0.85) * 3.333;
+
+		out_Color = vec4(r, g, b, 1.0f);
+
+		//out_Color = ex_Color;
 	}
 	else
 	{

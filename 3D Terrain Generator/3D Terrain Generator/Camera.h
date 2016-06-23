@@ -47,7 +47,7 @@ public:
 
 	void SetDistance(double cam_dist);
 	void SetPos(int button, int state, int x, int y);
-
+	void SetScale(float scale);
 	void SetProgramId(GLuint _programId);
 
 	//Getting Functions

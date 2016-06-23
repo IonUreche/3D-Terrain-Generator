@@ -10,7 +10,7 @@ Camera::Camera() {
 	field_of_view = 45;
 	rotation_quaternion = glm::quat(1, 0, 0, 0);
 	camera_position_delta = glm::vec3(0, 0, 0);
-	camera_scale = 5.f;
+	camera_scale = 0.5f;
 	max_pitch_rate = 5;
 	max_heading_rate = 5;
 	move_camera = false;
@@ -20,6 +20,11 @@ Camera::~Camera() {
 
 void Camera::Reset() {
 	camera_up = glm::vec3(0, 1, 0);
+}
+
+void Camera::SetScale(float scale)
+{
+	camera_scale = scale;
 }
 
 void Camera::Update() {

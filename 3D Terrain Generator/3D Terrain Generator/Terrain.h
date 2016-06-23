@@ -1,5 +1,6 @@
 #pragma once
 #include "Model.h"
+#include <Image.hpp>
 
 using namespace std;
 
@@ -15,7 +16,10 @@ public:
 	void Update() override;
 
 	void SetBezierControlPoints(vector<glm::vec3>& controlPoints);
-	void GenerateBezierSurface();
+	void SetDefaultBezierControlPoints();
+	void SetBezierControlPointHeight(int index, double newHeight);
+	double GetBezierControlPointHeight(int index);
+	void GenerateBezierSurface(int isAdditive, double sizeW, double sizeH, double HeightMultFactor, int rows, int columns, int generateControlPoints = 1, int recreate = 1);
 	//void CleanUp();
 	void GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeInPowerOfTwo, float startingPointsHeight,
 		                              float rngLowRange, float rngHighRange, float rngDivisionValue);
@@ -32,6 +36,7 @@ public:
 
 	void SmoothTerrain(int squareWidth);
 	void Apply3x3Filter(int type = 0);
+	void Apply5x5Filter(vector<float> f);
 	void ExportAsImage(string imgFileName);
 
 	void ScaleHeight(double scaleValue);
@@ -47,6 +52,7 @@ private:
 	float m_minHeight;
 
 	vector<glm::vec3> m_bezierControlPoints;
+	std::vector<GLdouble> m_backupVertices;
 
 	float BernsteinPolynomial3(int index, float u);
 
@@ -61,6 +67,8 @@ private:
 	void ClearVertexData();
 
 	void UpdateMinMaxHeight();
+	void UpdateMinMaxHeight(double min, double max);
+	void GetGradient(int type, double alpha, sf::Color &color);
 
 	float GetDiamondAverage(int row, int col, int step);
 	inline bool IsValidGridCoord(int row, int col);

@@ -1,29 +1,18 @@
-﻿Build started 6/12/2016 01:08:58.
+﻿Build started 6/23/2016 18:03:04.
      1>Project "E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\3D Terrain Generator\3D Terrain Generator.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\include" /I"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\include\SFML\Graphics" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\3D Terrain Generator.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp Terrain.cpp
-         Terrain.cpp
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(278): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(279): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(280): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(281): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(302): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(304): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(315): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(316): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(317): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(318): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(384): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(574): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(577): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(578): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(595): warning C4018: '<' : signed/unsigned mismatch
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\terrain.cpp(622): warning C4101: 'val' : unreferenced local variable
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\include" /I"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\include\SFML\Graphics" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\3D Terrain Generator.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp Model.cpp PerlinNoise.cpp
+         PerlinNoise.cpp
+         Model.cpp
          Main.cpp
      1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\glui-2.36\include\gl\glui.h(881): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(303): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(304): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
-     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(312): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(325): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(326): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(342): warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(488): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(490): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(579): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\documents\programming projects\3d-terrain-generator\3d terrain generator\3d terrain generator\main.cpp(583): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\bin" /LIBPATH:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\SFML-2.3.2\lib" glui32d.lib freeglut.lib glew32.lib FreeImage.lib SOIL.lib "sfml-graphics-d.lib" "sfml-window-d.lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Programming Projects\3D-Terrain-Generator\3D Terrain Generator\Debug\3D Terrain Generator.lib" /MACHINE:X86 Debug\Camera.obj
          Debug\Cuboid.obj
@@ -48,4 +37,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:06.19
+Time Elapsed 00:00:08.18

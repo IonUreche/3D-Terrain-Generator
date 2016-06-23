@@ -1,9 +1,9 @@
 #include "stdafx.h"
 
+#include <Image.hpp>
 #include "Terrain.h"
 #include "RNG.h"
 #include "PerlinNoise.h"
-#include <Image.hpp>
 
 Terrain::Terrain(int width, int height, int rowLen, int colLen, glm::vec3 center_pos)
 {
@@ -156,6 +156,35 @@ void Terrain::Update()
 		m_nrIndicesToDraw += 1;
 }
 
+void Terrain::SetDefaultBezierControlPoints()
+{
+	m_bezierControlPoints.clear();
+	m_bezierControlPoints.resize(16);
+
+	double step = 1.0 / 3.0;
+	int index = 0;
+
+	for (auto &x : m_bezierControlPoints)
+	{
+		x.x = (index / 4) * step;
+		x.y = RNG::getDouble(-4.0, 5.0);
+		x.z = (index % 4) * step;
+		++index;
+	}
+}
+
+void Terrain::SetBezierControlPointHeight(int index, double newHeight)
+{
+	if (index > 15 || index > m_bezierControlPoints.size()) return;
+	m_bezierControlPoints[index].y = newHeight;
+}
+
+double Terrain::GetBezierControlPointHeight(int index)
+{
+	if (index > 15 || index > m_bezierControlPoints.size()) return 0.0;
+	return m_bezierControlPoints[index].y;
+}
+
 void Terrain::SetBezierControlPoints(vector<glm::vec3>& controlPoints)
 {
 	m_bezierControlPoints = controlPoints;
@@ -165,7 +194,6 @@ void Terrain::SetBezierControlPoints(vector<glm::vec3>& controlPoints)
 		x.y += RNG::getFloat(-3.3f, 4.0f);
 		x.z += RNG::getFloat(-5.2f, 3.4f);
 	}
-		
 }
 
 float Terrain::BernsteinPolynomial3(int index, float u)
@@ -176,10 +204,20 @@ float Terrain::BernsteinPolynomial3(int index, float u)
 	return ans;
 }
 
-void Terrain::GenerateBezierSurface()
+// in order to apply Bezier Surface on top of other terrain
+// the terrain should be already created
+void Terrain::GenerateBezierSurface(int isAdditive, double sizeW, double sizeH, double HeightMultFactor, int rows, int columns, int generateControlPoints, int recreate)
 {
-	ClearVertexData();
-	CreateTerrain();
+	if (!isAdditive && recreate)
+	{
+		ClearVertexData();
+		SetSize(sizeW, sizeH);
+		SetGridSize(rows, columns);
+		CreateTerrain();
+	}
+	
+	if (generateControlPoints)
+		SetDefaultBezierControlPoints();
 	
 	for (int i = 0; i < m_rowNum; ++i)
 	{
@@ -189,7 +227,7 @@ void Terrain::GenerateBezierSurface()
 			float v = (float)j / (float)(m_colNum - 1);
 
 			int v_ind = 3 * (i * m_colNum + j);
-			m_vertices[v_ind] = m_vertices[v_ind + 1] = m_vertices[v_ind + 2] = 0.0f;
+			//m_vertices[v_ind] = m_vertices[v_ind + 1] = m_vertices[v_ind + 2] = 0.0f;
 
 			glm::vec3 new_point(0.f, 0.f, 0.f);
 
@@ -200,9 +238,17 @@ void Terrain::GenerateBezierSurface()
 					new_point += m_bezierControlPoints[ii * 4 + jj] * BernsteinPolynomial3(ii, u) * BernsteinPolynomial3(jj, v);
 				}
 			}
-			m_vertices[v_ind] = new_point.x;
-			m_vertices[v_ind + 1] = new_point.y;
-			m_vertices[v_ind + 2] = new_point.z;
+
+			if (!isAdditive)
+			{
+				//m_vertices[v_ind] = new_point.x * sizeW;
+				m_vertices[v_ind + 1] = new_point.y * HeightMultFactor;
+				//m_vertices[v_ind + 2] = new_point.z * sizeH;
+			}
+			else
+			{
+				m_vertices[v_ind + 1] = m_backupVertices[v_ind + 1] + new_point.y * HeightMultFactor;
+			}
 		}
 	}
 
@@ -262,6 +308,7 @@ void Terrain::GenerateDiamondSquareSurface(int terrainSize, int terrainGridSizeI
 
 	UpdateMinMaxHeight();
 	GenerateNormals();
+	m_backupVertices = m_vertices;
 }
 
 void Terrain::GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSizeInPowerOfTwo, double roughness, double heightScaleValue, int numberOfSmoothingIterations)
@@ -328,6 +375,7 @@ void Terrain::GenerateDiamondSquareSurface2(int terrainSize, int terrainGridSize
 	ScaleHeight(heightScaleValue);
 	UpdateMinMaxHeight();
 	GenerateNormals();
+	m_backupVertices = m_vertices;
 }
 
 void Terrain::ClearVertexData()
@@ -336,6 +384,7 @@ void Terrain::ClearVertexData()
 	m_vertices.clear();
 	m_colors.clear();
 	m_normals.clear();
+	m_backupVertices.clear();
 }
 
 void Terrain::CreateTerrain()
@@ -505,6 +554,43 @@ void Terrain::Apply3x3Filter(int type)
 	GenerateNormals();
 }
 
+void Terrain::Apply5x5Filter(vector<float> f)
+{
+	vector<GLfloat> m_newYCoords;
+
+	for (int i = 0; i < m_rowNum; ++i)
+	for (int j = 0; j < m_colNum; ++j)
+	{
+		float sum = 0.0f;
+		for (int dx = -2; dx <= 2; ++dx)
+			for (int dy = -2; dy <= 2; ++dy)
+			{
+				if (IsValidGridCoord(i + dx, j + dy))
+				{	
+				
+					sum += GetGridPointCoord(i + dx, j + dy, 1) * f[(dx + 2) * 5 + dy + 2];
+				}
+				else
+				{
+					sum += GetGridPointCoord(i - dx, j - dy, 1) * f[(dx + 2) * 5 + dy + 2];
+				}
+			}
+
+		m_newYCoords.push_back(sum);
+	}
+
+	double min = m_newYCoords[0], max = m_newYCoords[0];
+	for (size_t t = 0; t < m_newYCoords.size(); ++t)
+	{
+		m_vertices[3 * t + 1] = m_newYCoords[t];
+		if (m_newYCoords[t] < min) min = m_newYCoords[t];
+		if (m_newYCoords[t] > max) max = m_newYCoords[t];
+	}
+
+	UpdateMinMaxHeight(min, max);
+	GenerateNormals();
+}
+
 void Terrain::GenerateNormals()
 {
 	if (m_normals.size() != m_vertices.size())
@@ -579,6 +665,12 @@ void Terrain::UpdateMinMaxHeight()
 	}
 }
 
+void Terrain::UpdateMinMaxHeight(double min, double max)
+{
+	m_minHeight = min;
+	m_maxHeight = max;
+}
+
 void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMultFactor, double noiseMultFactor, double z)
 {
 	ClearVertexData();
@@ -611,6 +703,7 @@ void Terrain::ApplyPerlinNoise(int octaves, double persistence, double coordsMul
 
 	UpdateMinMaxHeight();
 	GenerateNormals();
+	m_backupVertices = m_vertices;
 }
 
 void Terrain::ExportAsImage(string imgFileName)
@@ -627,9 +720,12 @@ void Terrain::ExportAsImage(string imgFileName)
 	{
 		sf::Color color;
 		alpha = ((m_vertices[index] - m_minHeight) / diff);
+		GetGradient(1, alpha, color);
+		/*
 		color.r = (int)(alpha * 255);
 		color.g = (alpha > 0.5f) ? (int) ((2 - 2 * alpha) * 255) : (int) (255 * (2 * alpha));
 		color.b = (int)((1 - alpha) * 255);
+		*/
 		image.setPixel(i, j, color);
 		index += 3;
 	}
@@ -641,6 +737,38 @@ void Terrain::ExportAsImage(string imgFileName)
 	}
 }
 
+void Terrain::GetGradient(int type, double x, sf::Color &color)
+{
+	if (type == 0)
+	{
+		color.r = (int)(x * 255);
+		color.g = (x > 0.5f) ? (int)((2 - 2 * x) * 255) : (int)(255 * (2 * x));
+		color.b = (int)((1 - x) * 255);
+	}
+	else if (type == 1)
+	{
+		double r, g, b;
+		if (x < 0.1) b = 0.5 + 5 * x; else
+		if (x < 0.35) b = 1; else
+		if (x < 0.6) b = 1 - 4 * (x - 0.35); 
+		else b = 0;
+
+		if (x < 0.1) g = 0; else
+		if (x < 0.35) g = (x - 0.1) * 4; else
+		if (x < 0.6) g = 1; else
+		if (x < 0.85) g = 1 - (x - 0.6) * 4; 
+		else g = 0;
+
+		if (x < 0.35) r = 0; else
+		if (x < 0.6) r = (x - 0.35) * 4; else
+		if (x < 0.85) r = 1;
+		else r = 1 - (x - 0.85) * 3.333;
+
+		color.r = (int)(r * 255);
+		color.g = (int)(g * 255);
+		color.b = (int)(b * 255);
+	}
+}
 
 /*
 float alpha = (fragVert.y - minHeight) / (maxHeight - minHeight);
