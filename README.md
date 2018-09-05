@@ -12,4 +12,4 @@ Features:
 
 
 
-![Screenshot]("https://raw.githubusercontent.com/IonUreche/3D-Terrain-Generator/master/3D Terrain Generator/3D Terrain Generator/Screen1.JPG")
+![Screenshot](https://raw.githubusercontent.com/IonUreche/3D-Terrain-Generator/master/3D%20Terrain%20Generator/3D%20Terrain%20Generator/Screen1.JPG)
