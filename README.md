@@ -14,4 +14,5 @@ Features:
 # Screenshots:
 ![Screenshot](https://raw.githubusercontent.com/IonUreche/3D-Terrain-Generator/master/3D%20Terrain%20Generator/3D%20Terrain%20Generator/Screen1.JPG)
 
+# Example of exported heightmap
 ![Screenshot](https://raw.githubusercontent.com/IonUreche/3D-Terrain-Generator/master/3D%20Terrain%20Generator/3D%20Terrain%20Generator/test_heightmap.png)
