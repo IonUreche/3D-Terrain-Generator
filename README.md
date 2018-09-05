@@ -4,6 +4,7 @@ This is a 3D Procedural Terrain Generator application I've done for my bachelor 
 The algorithms used to generate terrain are Diamond Square Algorithm and Perlin Noise based Algorithm.
 It also offers binding of a 3D Bezier surface to the terrain so that the generated terrain(based on the 2 mentioned algorithms)
 can be controlled by changing the positions of bezier control points.
+
 Features:
   1) Control over all parameters of both algorithms.
   2) Control over bezier surface binded to the generated terrain
